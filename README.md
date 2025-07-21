@@ -34,6 +34,7 @@ This project explores the step-by-step enhancement of matrix multiplication perf
   Establishes a performance baseline using CPU-optimized techniques such as loop unrolling, cache-friendly access patterns, and Intel MKL. This helps quantify speedup from GPU versions.
 
 - ***Naive GPU Implementation (Significant Performance Improvement)*** [link text](2_Naive_GPU_Imp)  
+
   A simple CUDA kernel that assigns one thread per output element, using global memory directly. While it benefits from massive parallelism, it suffers from poor memory access and no data reuse.
 
 - ***Block-Wise Tiling for GPU Parallelism (Slight Performance Improvement)***  [link text](3_Block_Wise_Tilling)  
