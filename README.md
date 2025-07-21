@@ -34,7 +34,7 @@ he implementation aims to compute this efficiently on the GPU using CUDA.
 
 ## 📈 Benchmark Results
 
-Compared to Intel MKL and a naive CUDA kernel:
+Compared to Intel MKL and Our Castum CUDA kernel:
 
 - Achieved **~50× speedup over MKL** on 2048×2048 FP32 matrices.
 - Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
