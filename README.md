@@ -127,11 +127,12 @@ print("CUDA available:", torch.cuda.is_available())
 print("GPU name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU detected")
 ```
 ## ⚡ Compile Extension of Our Implementation (Must):
-To install the extension locally, run the following command:
 
+Enter MMUL_proj environment:
 ```sh
 mamba activate MMUL_proj
 ```
+To install the extension locally, run the following command:
 ```sh
 python setup.py install
 ```
