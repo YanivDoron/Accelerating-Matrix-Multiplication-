@@ -24,7 +24,8 @@ Given two input matrices
 compute their matrix product: C = A × B
 
 Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
-he implementation aims to compute this efficiently on the GPU using CUDA.
+
+The implementation aims to compute this efficiently on the GPU using CUDA.
 
 ## ✅ Simplifying Assumptions
 
