@@ -30,22 +30,22 @@ he implementation aims to compute this efficiently on the GPU using CUDA.
 
 This project explores the step-by-step enhancement of matrix multiplication performance through GPU acceleration. We begin by setting a strong CPU baseline and progressively implement and evaluate GPU optimizations. Each step focuses on exposing more parallelism, reducing memory latency, and increasing arithmetic throughput. At every stage, we analyze what improvements were effective and what challenges were encountered, gradually building toward a highly optimized GPU kernel.
 
-- ***Optimized Implementation on CPU (as a Reference Point)***
+- ***Optimized Implementation on CPU (as a Reference Point)*** [link text](1_MKL)
   Establishes a performance baseline using CPU-optimized techniques such as loop unrolling, cache-friendly access patterns, and Intel MKL. This helps quantify speedup from GPU versions.
 
-- ***Naive GPU Implementation (Significant Performance Improvement)***  
+- ***Naive GPU Implementation (Significant Performance Improvement)*** [link text](2_Naive_GPU_Imp)  
   A simple CUDA kernel that assigns one thread per output element, using global memory directly. While it benefits from massive parallelism, it suffers from poor memory access and no data reuse.
 
-- ***Block-Wise Tiling for GPU Parallelism (Slight Performance Improvement)***  
+- ***Block-Wise Tiling for GPU Parallelism (Slight Performance Improvement)***  [link text](3_Block_Wise_Tilling)  
   Divides the matrix into tiles and maps them to thread blocks. This improves coalesced memory access and reduces redundant global memory reads, allowing better GPU occupancy.
 
-- ***Streaming (No Significant Change in Performance – used mainly for debug and analysis)***  
+- ***Streaming (No Significant Change in Performance – used mainly for debug and analysis)***  [link text](4_Streaming)     
   Introduces multiple CUDA streams to overlap data transfers and compute with kernel execution, helping hide memory latency and improve throughput.
 
-- ***Leveraging Shared Memory for Data Reuse (Significant Performance Improvement)***  
+- ***Leveraging Shared Memory for Data Reuse (Significant Performance Improvement)*** [link text](5_Shared Memory)  
   Copies tiles of input matrices into fast shared memory, allowing threads to reuse data multiple times and drastically reduce global memory traffic. This improves bandwidth efficiency.
 
-- ***Register Tiling for Maximum Throughput (Significant Performance Improvement)***  
+- ***Register Tiling for Maximum Throughput (Significant Performance Improvement)***  [link text](6_Register_Tilling) 
   Each thread computes a small output sub-block using registers. This minimizes memory access and leverages low-latency register files for peak arithmetic throughput.
 
 ## 📈 Benchmark Results
