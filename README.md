@@ -9,9 +9,10 @@ Optimizing it can significantly improve overall system performance.
 To accelerate the computation, we developed a custom CUDA kernel optimized for large matrix sizes.  
 The kernel utilizes:
 
-- **Shared memory tiling**  
-- **Register blocking (4×4 register tiling)**  
-- **Thread-level parallelism**
+- **Block-Wise Tiling for GPU Parallelism **  
+- **Streaming Method**  
+- **Leveraging Shared Memory for Data Reuse**
+- **•	Register Tiling for Maximum Throughput**
 
 These techniques reduce global memory traffic and improve data reuse and throughput.
 
