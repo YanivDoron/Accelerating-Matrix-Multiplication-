@@ -7,7 +7,7 @@ It uses **Intel’s Math Kernel Library (MKL)** to perform high-performance dens
 
 Intel MKL is a highly optimized, multithreaded library specifically engineered for numerical computations on modern CPUs.  
 By leveraging MKL, we can approach peak CPU performance **without** manually writing low-level SIMD or multithreaded code.
-![Performance Plot](images/gragh1.png)
+
 ---
 
 ## ⚙️ Why Intel MKL?
@@ -41,7 +41,8 @@ In our project, the MKL implementation is used to:
 - Compare and quantify the **performance gains** achieved by our GPU-based CUDA kernels.
 
 ---
-
+![Performance Plot](images/gragh1.png)
+---
 ## 🚀 How to Use
 
 Make sure Intel MKL is installed and linked correctly (via Anaconda, pip wheels with MKL, or system-level installation):
