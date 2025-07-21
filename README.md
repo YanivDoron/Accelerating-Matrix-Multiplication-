@@ -31,6 +31,7 @@ he implementation aims to compute this efficiently on the GPU using CUDA.
 This project explores the step-by-step enhancement of matrix multiplication performance through GPU acceleration. We begin by setting a strong CPU baseline and progressively implement and evaluate GPU optimizations. Each step focuses on exposing more parallelism, reducing memory latency, and increasing arithmetic throughput. At every stage, we analyze what improvements were effective and what challenges were encountered, gradually building toward a highly optimized GPU kernel.
 
 - ***Optimized Implementation on CPU (as a Reference Point)*** [link text](1_MKL)
+
   Establishes a performance baseline using CPU-optimized techniques such as loop unrolling, cache-friendly access patterns, and Intel MKL. This helps quantify speedup from GPU versions.
 
 - ***Naive GPU Implementation (Significant Performance Improvement)*** [link text](2_Naive_GPU_Imp)  
