@@ -7,7 +7,7 @@ It uses **Intel’s Math Kernel Library (MKL)** to perform high-performance dens
 
 Intel MKL is a highly optimized, multithreaded library specifically engineered for numerical computations on modern CPUs.  
 By leveraging MKL, we can approach peak CPU performance **without** manually writing low-level SIMD or multithreaded code.
-
+![Performance Plot](images/gragh1.png)
 ---
 
 ## ⚙️ Why Intel MKL?
