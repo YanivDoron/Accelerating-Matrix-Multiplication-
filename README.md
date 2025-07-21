@@ -26,6 +26,15 @@ compute their matrix product: C = A × B
 Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
 he implementation aims to compute this efficiently on the GPU using CUDA.
 
+## ✅ Simplifying Assumptions
+
+- **Contiguous Memory:** All matrices are stored contiguously (row-major).
+- **Device-Resident:** All matrices reside in GPU memory. No host-device transfers during computation.
+- **FP32 Precision:** All computations are done in 32-bit float (no quantization).
+- **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
+
+
+
 ## 📚 Chronological Progression of GPU Optimizations
 
 This project explores the step-by-step enhancement of matrix multiplication performance through GPU acceleration. We begin by setting a strong CPU baseline and progressively implement and evaluate GPU optimizations. Each step focuses on exposing more parallelism, reducing memory latency, and increasing arithmetic throughput. At every stage, we analyze what improvements were effective and what challenges were encountered, gradually building toward a highly optimized GPU kernel.
@@ -59,13 +68,6 @@ This project explores the step-by-step enhancement of matrix multiplication perf
 Compared to Intel MKL and Our Castum CUDA kernel:
 - Achieved **~50× speedup over MKL** on 2048×2048 FP32 matrices.
 - Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
-
-## ✅ Simplifying Assumptions
-
-- **Contiguous Memory:** All matrices are stored contiguously (row-major).
-- **Device-Resident:** All matrices reside in GPU memory. No host-device transfers during computation.
-- **FP32 Precision:** All computations are done in 32-bit float (no quantization).
-- **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
 
 
 ## 🖥️ Requirements & Install
