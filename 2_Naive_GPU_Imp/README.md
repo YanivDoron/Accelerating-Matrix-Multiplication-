@@ -51,7 +51,7 @@ It enabled us to evaluate the impact of further GPU optimizations such as:
     </p>
   </div>
   <div style="flex: 1; min-width: 300px; text-align: center;">
-    <img src="images/naive_vs_mkl.png" alt="Naive CUDA vs MKL Performance Plot" style="max-width: 100%; height: auto;">
+    <img src="images/gragh1.png" alt="Naive CUDA vs MKL Performance Plot" style="max-width: 100%; height: auto;">
   </div>
 </div>
 
