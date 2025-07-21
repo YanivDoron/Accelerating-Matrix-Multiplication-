@@ -102,3 +102,24 @@ mamba create -n MMUL_proj
 mamba activate MMUL_proj
 mamba install python==3.10.2 pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 libgcc-ng==9.5.0 ninja==1.10.2 setuptools==69.5.1 mkl=2024.0.0 cuda-compiler=11.7 cuda-version=11.7 cuda-nvprune=11.7 cuda-cuxxfilt=11.7 cuda-nvcc=11.7 cuda-cuobjdump=11.7 cuda-cudart-dev=11.7 cuda-cccl=11.7 cuda-nvrtc-dev=11.7 cuda-libraries-dev=11.7 -c pytorch -c nvidia
 ```
+## 🧪 Get a GPU and Check Validity
+
+If you are working on a cluster, you can request a GPU and start a shell session using:
+
+```sh
+srun -c 2 --gres=gpu:1 --pty bash
+```
+
+To verify your GPU is available and CUDA drivers are working, run:
+
+```sh
+nvidia-smi
+```
+
+You should see details about your GPU.  
+For further validation in Python, run:
+
+```python
+import torch
+print("CUDA available:", torch.cuda.is_available())
+print("GPU name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU detected")
