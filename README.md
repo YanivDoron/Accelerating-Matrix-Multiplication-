@@ -25,33 +25,6 @@ compute their matrix product: C = A × B
 Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
 he implementation aims to compute this efficiently on the GPU using CUDA.
 
-## 🧠 Optimization Techniques
-
-- **Shared Memory Tiling:** Reduces DRAM access latency by loading tiles into low-latency shared memory.
-- **Register Blocking (4×4):** Each thread computes a 4×4 tile using registers for maximum reuse.
-- **Thread Cooperation:** Warps collaborate to load and compute tiles.
-- **Streaming and Overlap:** CUDA streams are optionally used to overlap data movement and computation.
-
-## 📈 Benchmark Results
-
-Compared to Intel MKL and Our Castum CUDA kernel:
-
-- Achieved **~50× speedup over MKL** on 2048×2048 FP32 matrices.
-- Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
-
-## ✅ Simplifying Assumptions
-
-- **Contiguous Memory:** All matrices are stored contiguously (row-major).
-- **Device-Resident:** All matrices reside in GPU memory. No host-device transfers during computation.
-- **FP32 Precision:** All computations are done in 32-bit float (no quantization).
-- **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
-
-## 🖥️ Requirements
-
-- CUDA-enabled NVIDIA GPU (e.g., RTX 2080 Ti)
-- Python + PyTorch (with CUDA support)
-- C++/CUDA build environment (`nvcc`, `setuptools`)
-
 ## 📚 Chronological Progression of GPU Optimizations
 
 This project explores the step-by-step enhancement of matrix multiplication performance through GPU acceleration. We begin by setting a strong CPU baseline and progressively implement and evaluate GPU optimizations. Each step focuses on exposing more parallelism, reducing memory latency, and increasing arithmetic throughput. At every stage, we analyze what improvements were effective and what challenges were encountered, gradually building toward a highly optimized GPU kernel.
@@ -74,3 +47,25 @@ This project explores the step-by-step enhancement of matrix multiplication perf
 
 - **Register Tiling for Maximum Throughput (Significant Performance Improvement)**  
   Each thread computes a small output sub-block using registers. This minimizes memory access and leverages low-latency register files for peak arithmetic throughput.
+
+## 📈 Benchmark Results
+
+Compared to Intel MKL and Our Castum CUDA kernel:
+
+- Achieved **~50× speedup over MKL** on 2048×2048 FP32 matrices.
+- Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
+
+## ✅ Simplifying Assumptions
+
+- **Contiguous Memory:** All matrices are stored contiguously (row-major).
+- **Device-Resident:** All matrices reside in GPU memory. No host-device transfers during computation.
+- **FP32 Precision:** All computations are done in 32-bit float (no quantization).
+- **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
+
+## 🖥️ Requirements
+
+- CUDA-enabled NVIDIA GPU (e.g., RTX 2080 Ti)
+- Python + PyTorch (with CUDA support)
+- C++/CUDA build environment (`nvcc`, `setuptools`)
+
+
