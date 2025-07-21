@@ -37,6 +37,9 @@ It enabled us to evaluate the impact of further GPU optimizations such as:
 - Thread cooperation within warps  
 - Kernel streaming with multiple CUDA streams
 
+![Performance Plot](images/graph1.png)
+![Performance Plot](images/flame1.png)
+
 The results show that even **naive GPU code** can outperform sophisticated CPU libraries when the GPU's compute and memory capabilities are effectively leveraged.
 
 ---
