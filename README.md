@@ -67,13 +67,11 @@ Compared to Intel MKL and Our Castum CUDA kernel:
 - **FP32 Precision:** All computations are done in 32-bit float (no quantization).
 - **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
 
-## 🖥️ Requirements
 
+## 🖥️ Requirements & Install
 - CUDA-enabled NVIDIA GPU (e.g., RTX 2080 Ti)
 - Python + PyTorch (with CUDA support)
 - C++/CUDA build environment (`nvcc`, `setuptools`)
-
-## Install
 
 **(1) Recommended:** Install mamba as in: [https://github.com/conda-forge/miniforge#mambaforge](https://github.com/conda-forge/miniforge#mambaforge).  
 If you prefer to use conda, proceed to (2) and replace "mamba" commands with "conda" commands.
