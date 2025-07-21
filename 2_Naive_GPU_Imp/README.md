@@ -37,23 +37,26 @@ It enabled us to evaluate the impact of further GPU optimizations such as:
 - Thread cooperation within warps  
 - Kernel streaming with multiple CUDA streams
   
-<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin: 1em 0;">
-  <div style="flex: 1; min-width: 300px;">
-    <p>
-      To evaluate the performance benefits of GPU acceleration, we implemented a Naive CUDA kernel for square matrix multiplication.
-      Both methods were benchmarked across increasing matrix sizes, and the execution times were recorded using a performance counter.
-    </p>
-    <p>
-      Despite its simplicity, the Naive CUDA version consistently outperformed MKL, achieving up to
-      <strong>10.8× speedup</strong> on large matrices.
-      This improvement stems from the GPU’s massive parallelism, higher memory bandwidth, and efficient latency hiding,
-      making it significantly more effective for large-scale matrix computations.
-    </p>
-  </div>
-  <div style="flex: 1; min-width: 300px; text-align: center;">
-    <img src="images/gragh1.png" alt="Naive CUDA vs MKL Performance Plot" style="max-width: 100%; height: auto;">
-  </div>
-</div>
+
+
+<table>
+  <tr>
+    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+      <p>
+        To evaluate the performance benefits of GPU acceleration, we implemented a Naive CUDA kernel for square matrix multiplication.
+        Both methods were benchmarked across increasing matrix sizes, and the execution times were recorded using a performance counter.
+      </p>
+      <p>
+        Despite its simplicity, the Naive CUDA version consistently outperformed MKL, achieving up to
+        <strong>10.8× speedup</strong> on large matrices. This improvement stems from the GPU’s massive parallelism,
+        higher memory bandwidth, and efficient latency hiding, making it significantly more effective for large-scale matrix computations.
+      </p>
+    </td>
+    <td style="width: 50%; text-align: center;">
+      <img src="images/gragh1.png" alt="Performance Plot" width="100%">
+    </td>
+  </tr>
+</table>
 
 
 ![Performance Plot](images/flame1.png)
