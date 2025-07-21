@@ -115,6 +115,10 @@ nvidia-smi
 ```
 
 You should see details about your GPU.  
+
+```sh
+mamba activate MMUL_proj
+```
 For further validation in Python, run:
 
 ```python
