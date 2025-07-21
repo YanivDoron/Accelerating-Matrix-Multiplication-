@@ -73,4 +73,32 @@ Compared to Intel MKL and Our Castum CUDA kernel:
 - Python + PyTorch (with CUDA support)
 - C++/CUDA build environment (`nvcc`, `setuptools`)
 
+## Install
 
+**(1) Recommended:** Install mamba as in: [https://github.com/conda-forge/miniforge#mambaforge](https://github.com/conda-forge/miniforge#mambaforge).  
+If you prefer to use conda, proceed to (2) and replace "mamba" commands with "conda" commands.
+
+**(1.1) First remove any previous Anaconda/miniconda installation via:**
+```sh
+conda activate base
+conda/mamba install anaconda-clean
+anaconda-clean --yes
+rm -rf ~/miniconda3
+rm -rf ~/miniforge3
+rm -rf ~/anaconda3
+rm -rf ~/.anaconda_backup
+```
+
+**(1.2) Install mamba as in:** [https://github.com/conda-forge/miniforge#mambaforge](https://github.com/conda-forge/miniforge#mambaforge)
+```sh
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh"
+bash Miniforge3-Linux-x86_64.sh
+conda config --set auto_activate_base false
+```
+
+**(2) Install MMUL_proj environment:**
+```sh
+mamba create -n MMUL_proj
+mamba activate MMUL_proj
+mamba install python==3.10.2 pytorch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 pytorch-cuda=11.7 libgcc-ng==9.5.0 ninja==1.10.2 setuptools==69.5.1 mkl=2024.0.0 cuda-compiler=11.7 cuda-version=11.7 cuda-nvprune=11.7 cuda-cuxxfilt=11.7 cuda-nvcc=11.7 cuda-cuobjdump=11.7 cuda-cudart-dev=11.7 cuda-cccl=11.7 cuda-nvrtc-dev=11.7 cuda-libraries-dev=11.7 -c pytorch -c nvidia
+```
