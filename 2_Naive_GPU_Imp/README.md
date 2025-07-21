@@ -37,7 +37,21 @@ higher memory bandwidth, and efficient latency hiding, making it significantly m
 
 
 
-  
+  ### 🔥 Flame Graph Analysis – Naive CUDA Kernel
+
+The flame graph above visualizes the execution flow of a PyTorch program that invokes a naive CUDA-based matrix multiplication kernel.
+
+The execution begins in `flamenaive.py` where the `run_and_profile()` function is called. This function in turn calls `matmul_naive` from `matmul.py`, which wraps the call to a custom CUDA extension function:  
+`<built-in method matmul_naive of PyCapsule object at ...>`.
+
+Before the kernel is launched, PyTorch allocates memory for output tensors using `aten::empty` and `aten::zeros`. The actual CUDA kernel — `void matmul_kernel_naive_flat<float>(...)` — is visible at the bottom of the graph, appearing later in the timeline due to PyTorch's **asynchronous execution** model. CUDA operations are enqueued but only executed on the device when required or explicitly synchronized.
+
+The right side of the flame graph shows the **profiler shutdown and synchronization** logic:
+- The profiler exits via `torch/profiler/profiler.py(...)`
+- Device-side completion is enforced by `cudaDeviceSynchronize`, ensuring all GPU work is completed before profiling ends.
+
+This structure is typical when analyzing performance-critical GPU code in PyTorch using `torch.profiler`, and it highlights the separation between host-side logic and actual GPU execution.
+
 
 
 
