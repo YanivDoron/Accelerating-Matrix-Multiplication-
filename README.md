@@ -38,16 +38,20 @@ This project explores the step-by-step enhancement of matrix multiplication perf
 
   A simple CUDA kernel that assigns one thread per output element, using global memory directly. While it benefits from massive parallelism, it suffers from poor memory access and no data reuse.
 
-- ***Block-Wise Tiling for GPU Parallelism (Slight Performance Improvement)***  [link text](3_Block_Wise_Tilling)  
+- ***Block-Wise Tiling for GPU Parallelism (Slight Performance Improvement)***  [link text](3_Block_Wise_Tilling)
+- 
   Divides the matrix into tiles and maps them to thread blocks. This improves coalesced memory access and reduces redundant global memory reads, allowing better GPU occupancy.
 
-- ***Streaming (No Significant Change in Performance – used mainly for debug and analysis)***  [link text](4_Streaming)     
+- ***Streaming (No Significant Change in Performance – used mainly for debug and analysis)***  [link text](4_Streaming)
+       
   Introduces multiple CUDA streams to overlap data transfers and compute with kernel execution, helping hide memory latency and improve throughput.
 
-- ***Leveraging Shared Memory for Data Reuse (Significant Performance Improvement)*** [link text](5_Shared Memory)  
+- ***Leveraging Shared Memory for Data Reuse (Significant Performance Improvement)*** [link text](5_Shared_Memory)
+   
   Copies tiles of input matrices into fast shared memory, allowing threads to reuse data multiple times and drastically reduce global memory traffic. This improves bandwidth efficiency.
 
-- ***Register Tiling for Maximum Throughput (Significant Performance Improvement)***  [link text](6_Register_Tilling) 
+- ***Register Tiling for Maximum Throughput (Significant Performance Improvement)***  [link text](6_Register_Tilling)
+  
   Each thread computes a small output sub-block using registers. This minimizes memory access and leverages low-latency register files for peak arithmetic throughput.
 
 ## 📈 Benchmark Results
