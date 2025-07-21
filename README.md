@@ -1,3 +1,4 @@
+![Performance Plot](images/LOGOS.png)
 # Accelerating Matrix Multiplication on Nvidia GPU
 
 ## 📌 Introduction
