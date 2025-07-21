@@ -36,7 +36,8 @@ It enabled us to evaluate the impact of further GPU optimizations such as:
 - Register tiling  
 - Thread cooperation within warps  
 - Kernel streaming with multiple CUDA streams
-
+  
+Despite its simplicity, the Naive CUDA version consistently outperformed MKL, achieving up to 10.8× speedup on large matrices. This improvement stems from the GPU’s massive parallelism, higher memory bandwidth, and efficient latency hiding, making it significantly more effective for large-scale matrix computations.
 ![Performance Plot](images/graph1.png)
 ![Performance Plot](images/flame1.png)
 
