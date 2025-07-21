@@ -118,9 +118,7 @@ nvidia-smi
 
 You should see details about your GPU.  
 
-```sh
-mamba activate MMUL_proj
-```
+
 For further validation in Python, run:
 
 ```python
@@ -131,6 +129,9 @@ print("GPU name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() el
 ## ⚡ Compile Extension of Our Implementation (Must):
 To install the extension locally, run the following command:
 
+```sh
+mamba activate MMUL_proj
+```
 ```sh
 python setup.py install
 ```
