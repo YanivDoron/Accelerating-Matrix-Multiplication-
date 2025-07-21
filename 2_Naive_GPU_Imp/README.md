@@ -29,34 +29,16 @@ Despite its simplicity, this naive kernel **consistently outperforms Intel MKL**
 
 ### 🧪 Benchmark Results
 
-The naive kernel served as a second reference point (in addition to MKL).  
-It enabled us to evaluate the impact of further GPU optimizations such as:
+The naive kernel served as a second reference point (in addition to MKL).
+Despite its simplicity, the Naive CUDA version consistently outperformed MKL, achieving up to
+<strong>10.8× speedup</strong> on large matrices. This improvement stems from the GPU’s massive parallelism,
+higher memory bandwidth, and efficient latency hiding, making it significantly more effective for large-scale matrix computations.
+![Performance Plot](images/graph1.png)
 
-- Shared memory tiling  
-- Register tiling  
-- Thread cooperation within warps  
-- Kernel streaming with multiple CUDA streams
+
+
   
 
-
-<table>
-  <tr>
-    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
-      <p>
-        To evaluate the performance benefits of GPU acceleration, we implemented a Naive CUDA kernel for square matrix multiplication.
-        Both methods were benchmarked across increasing matrix sizes, and the execution times were recorded using a performance counter.
-      </p>
-      <p>
-        Despite its simplicity, the Naive CUDA version consistently outperformed MKL, achieving up to
-        <strong>10.8× speedup</strong> on large matrices. This improvement stems from the GPU’s massive parallelism,
-        higher memory bandwidth, and efficient latency hiding, making it significantly more effective for large-scale matrix computations.
-      </p>
-    </td>
-    <td style="width: 50%; text-align: center;">
-      <img src="images/graph1.png" alt="Performance Plot" width="400%">
-    </td>
-  </tr>
-</table>
 
 
 ![Performance Plot](images/flame1.png)
@@ -68,4 +50,10 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 ### 📌 Summary
 
 This implementation highlights the **inherent strength of the GPU architecture**, showing that substantial performance gains can be achieved even before applying advanced memory or scheduling optimizations.
+It enabled us to evaluate the impact of further GPU optimizations such as:
+
+- Shared memory tiling  
+- Register tiling  
+- Thread cooperation within warps  
+- Kernel streaming with multiple CUDA streams
 
