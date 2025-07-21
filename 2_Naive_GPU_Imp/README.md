@@ -53,7 +53,7 @@ It enabled us to evaluate the impact of further GPU optimizations such as:
       </p>
     </td>
     <td style="width: 50%; text-align: center;">
-      <img src="images/graph1.png" alt="Performance Plot" width="100%">
+      <img src="images/graph1.png" alt="Performance Plot" width="400%">
     </td>
   </tr>
 </table>
