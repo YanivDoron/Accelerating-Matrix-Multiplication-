@@ -24,7 +24,8 @@ Given two input matrices
 compute their matrix product: C = A × B
 
 Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
-he implementation aims to compute this efficiently on the GPU using CUDA.
+
+The implementation aims to compute this efficiently on the GPU using CUDA.
 
 ## ✅ Simplifying Assumptions
 
@@ -118,12 +119,21 @@ nvidia-smi
 
 You should see details about your GPU.  
 
-```sh
-mamba activate MMUL_proj
-```
+
 For further validation in Python, run:
 
 ```python
 import torch
 print("CUDA available:", torch.cuda.is_available())
 print("GPU name:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "No GPU detected")
+```
+## ⚡ Compile Extension of Our Implementation (Must):
+
+Enter MMUL_proj environment:
+```sh
+mamba activate MMUL_proj
+```
+To install the extension locally, run the following command:
+```sh
+python setup.py install
+```
