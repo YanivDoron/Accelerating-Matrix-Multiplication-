@@ -62,18 +62,12 @@ This section explains how to run, profile, and visualize the performance of the 
 
 ---
 
-## 📄 `Benchmark.py`
+## 📊 `Benchmark.py`
 
 Benchmarks the selected matrix multiplication implementations across multiple matrix sizes.
 
 **What it does:**
-- Runs implementations such as:
-  - `matmul_naive`
-  - `matmul_block`
-  - `matmul_streamed`
-  - `matmul_block_SM`
-  - `matmul_streamed_SM`
-  - `matmul` (register-tiled)
+- Runs current implementation
 - Measures runtime and calculates speedups.
 
 **Output:**
@@ -83,4 +77,20 @@ Benchmarks the selected matrix multiplication implementations across multiple ma
 **To run:**
 ```bash
 python Benchmark.py
-'''
+```
+---
+## 🔥 `GenerateFlameGraph.py`
+
+Profiles a single kernel execution using torch.profiler and generates a Chrome-compatible trace.
+
+Output:
+
+log/profile.json: Timeline that can be loaded into chrome://tracing.
+
+```bash
+python GenerateFlameGraph.py
+```
+
+
+
+
