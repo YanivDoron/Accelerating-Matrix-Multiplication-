@@ -91,6 +91,15 @@ log/profile.json: Timeline that can be loaded into chrome://tracing.
 python GenerateFlameGraph.py
 ```
 
+## 📄 `ShowPerformance.py`
+
+Profiles a single kernel execution using torch.profiler and store the data on text file.
+Output:
+Profile.txt
+
+```bash
+python ShowPerformance.py
+```
 
 
 
