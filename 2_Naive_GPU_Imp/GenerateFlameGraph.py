@@ -1,11 +1,11 @@
 import torch
 from torch.profiler import profile, record_function, ProfilerActivity
-import matmul_cuda  # Your compiled CUDA extension
+import matmul  # Your compiled CUDA extension
 
 TRACE_PATH = "naive_GPU_flamegraph.json"
 
 def matmul_naive(A1, A2):
-    return matmul_cuda.matmul_naive(A1.contiguous(), A2.contiguous())
+    return matmul.matmul_naive(A1.contiguous(), A2.contiguous())
 
 def main():
     N = 2048
@@ -14,7 +14,7 @@ def main():
 
     # Warm-up (important for accurate profiling)
     for _ in range(1):
-        matmul_cuda.matmul(A.contiguous(), B.contiguous())
+        matmul.matmul_naive(A.contiguous(), B.contiguous())
 
 
     with profile(
