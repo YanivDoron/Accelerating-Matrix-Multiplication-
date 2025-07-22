@@ -94,12 +94,31 @@ python GenerateFlameGraph.py
 ## 📄 `ShowPerformance.py`
 
 Profiles a single kernel execution using torch.profiler and store the data on text file.
+
 Output:
 Profile.txt
 
 ```bash
 python ShowPerformance.py
 ```
+
+## 🧪 `script_benchmark_MKL.sh`
+Benchmarks CPU-based matrix multiplication using Intel MKL (e.g., via NumPy or SciPy).
+
+What it does:
+
+Runs CPU matrix multiplication across different sizes.
+
+Records runtime into .npy files.
+
+Output:
+
+**Output:**
+- `results/times.npy`: Runtimes (ms) for each method and size.
+- `results/speedups.npy`: Speedup compared to baseline (MKL and previeus implementation  ).
+- 
+
+
 
 
 
