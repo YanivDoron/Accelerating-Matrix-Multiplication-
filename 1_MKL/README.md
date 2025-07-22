@@ -59,3 +59,28 @@ This section explains how to run, profile, and visualize the performance of the 
 | `GenerateFlameGraph.py`  | Profiles a single implementation and generates a Chrome trace timeline      |
 | `ShowPerformance.py`     | Profiles a single implementation and store the data on text file            |
 | `script_benchmark_<X>.sh`| Benchmarks the current matmul against the previeus implementation           |                     
+
+---
+
+## 📄 `Benchmark.py`
+
+Benchmarks the selected matrix multiplication implementations across multiple matrix sizes.
+
+**What it does:**
+- Runs implementations such as:
+  - `matmul_naive`
+  - `matmul_block`
+  - `matmul_streamed`
+  - `matmul_block_SM`
+  - `matmul_streamed_SM`
+  - `matmul` (register-tiled)
+- Measures runtime and calculates speedups.
+
+**Output:**
+- `results/times.npy`: Runtimes (ms) for each method and size.
+- `results/speedups.npy`: Speedup compared to baseline (e.g., MKL or naive).
+
+**To run:**
+```bash
+python Benchmark.py
+'''
