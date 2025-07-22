@@ -128,7 +128,7 @@ Profile.txt
 python ShowPerformance.py
 ```
 
-## 🧪 `script_benchmark_MKL.sh`
+## 🧪 `script_benchmark_<X>.sh`
 Benchmarks CPU-based matrix multiplication using Intel MKL (e.g., via NumPy or SciPy).
 
 What it does:
