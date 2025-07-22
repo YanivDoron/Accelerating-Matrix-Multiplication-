@@ -45,14 +45,17 @@ In our project, the MKL implementation is used to:
 ![Performance Plot](images/profiling.png)
 
 ---
-## 🚀 How to Use
+# 📊 Running and Profiling the Matrix Multiplication Implementation
 
-Make sure Intel MKL is installed and linked correctly (via Anaconda, pip wheels with MKL, or system-level installation):
+This section explains how to run, profile, and visualize the performance of the different matrix multiplication implementations included in this project. Each script below plays a specific role in benchmarking GPU and CPU performance, generating visual output, and saving logs for analysis.
 
-```bash
-# Python example using NumPy with MKL backend (default on many systems)
-import numpy as np
+---
 
-A = np.random.rand(N, N).astype(np.float32)
-B = np.random.rand(N, N).astype(np.float32)
-C = np.matmul(A, B)  # Under the hood, uses MKL
+## 🔧 Scripts Overview
+
+| Script                   | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `Benchmark.py`           | Benchmarks all GPU matmul methods and saves their runtime + speedup data   |
+| `GenerateFlameGraph.py`  | Profiles a single GPU implementation and generates a Chrome trace timeline |
+| `ShowPerformance.py`     | Loads benchmark data and plots performance/speedup graphs                  |
+| `script_benchmark_MKL.sh`| Benchmarks CPU MKL-based matmul and saves the results                      
