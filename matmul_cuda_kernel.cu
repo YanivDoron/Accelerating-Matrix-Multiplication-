@@ -2,12 +2,12 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define TILE_M 32
-#define TILE_N 32
+#define TILE_M 64
+#define TILE_N 64
 #define TILE_K 32
 #define WPT 4          // Work per thread (register tiling: 4x4)
 #define THREADS_X (TILE_N / WPT)
-#define THREADS_Y (TILE_M / WPT)
+#define THREADS_Y (TILE_M / WPT) //////
 
 
 // Fully unrolled 4x4 register tiling with static shared-memory tiled GEMM
