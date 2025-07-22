@@ -116,7 +116,10 @@ Output:
 **Output:**
 - `results/times.npy`: Runtimes (ms) for each method and size.
 - `results/speedups.npy`: Speedup compared to baseline (MKL and previeus implementation  ).
-- 
+
+```bash
+bash script_benchmark_MKL.sh
+```
 
 
 
