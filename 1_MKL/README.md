@@ -42,6 +42,8 @@ In our project, the MKL implementation is used to:
 
 ---
 ![Performance Plot](images/gragh1.png)
+![Performance Plot](images/profiling.png)
+
 ---
 ## 🚀 How to Use
 
