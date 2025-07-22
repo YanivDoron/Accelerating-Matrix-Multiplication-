@@ -90,8 +90,8 @@ This section explains how to run, profile, and visualize the performance of the 
 
 ## 📊 `Benchmark.py`
 
-Benchmarks the selected matrix multiplication implementations across multiple matrix sizes.
-
+Benchmarks the current matrix multiplication implementation across multiple matrix sizes.
+compare to CPU-based matrix multiplication using Intel MKL and previeus implementation .
 **What it does:**
 - Runs current implementation
 - Measures runtime and calculates speedups.
@@ -129,13 +129,14 @@ python ShowPerformance.py
 ```
 
 ## 🧪 `script_benchmark_<X>.sh`
-Benchmarks CPU-based matrix multiplication using Intel MKL (e.g., via NumPy or SciPy).
+Benchmarks the current matrix multiplication implementation across multiple matrix sizes.
+compare to CPU-based matrix multiplication using Intel MKL and previeus implementation .
 
 What it does:
 
-Runs CPU matrix multiplication across different sizes.
+Runs cuurent GPU matrix multiplication across different sizes.
 
-Records runtime into .npy files.
+Records runtime and speedups plot to screen.
 
 Output:
 
