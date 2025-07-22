@@ -58,4 +58,4 @@ This section explains how to run, profile, and visualize the performance of the 
 | `Benchmark.py`           | Benchmarks the current method and show their runtime + speedup data         |
 | `GenerateFlameGraph.py`  | Profiles a single GPU implementation and generates a Chrome trace timeline  |
 | `ShowPerformance.py`     | Loads benchmark data and plots performance/speedup graphs                   |
-| `script_benchmark_<X>.sh`| Benchmarks <X> matmul against the previeus implementation                   |                     
+| `script_benchmark_<X>.sh`| Benchmarks the current matmul against the previeus implementation           |                     
