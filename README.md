@@ -67,10 +67,10 @@ This project explores the step-by-step enhancement of matrix multiplication perf
 ## 📈 Benchmark Results
 
 Compared to Intel MKL and Our Castum CUDA kernel:
-- Achieved **~50× speedup over MKL** on 2048×2048 FP32 matrices.
+- Achieved **~60× speedup over MKL** on 2048×2048 FP32 matrices.
 - Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
 
-
+![Performance Plot](images/gpugraph.png)
 ## 🖥️ Requirements & Install
 - CUDA-enabled NVIDIA GPU (e.g., RTX 2080 Ti)
 - Python + PyTorch (with CUDA support)
