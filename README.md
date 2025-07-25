@@ -30,7 +30,7 @@ The implementation aims to compute this efficiently on the GPU using CUDA.
 ## ✅ Simplifying Assumptions
 
 - **Contiguous Memory:** All matrices are stored contiguously (row-major).
-- **Device-Resident:** All matrices reside in GPU memory. No host-device transfers during computation.
+- **Device-Resident:** All input matrices reside in GPU memory. No host-device transfers during computation.
 - **FP32 Precision:** All computations are done in 32-bit float (no quantization).
 - **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
 
