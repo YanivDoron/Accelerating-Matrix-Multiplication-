@@ -2,13 +2,7 @@
 
 ### Previous  : [Naive GPU Implementation](/2_Naive_GPU_Imp)                           Next  : [Streaming](/4_Streaming)                                            
 
- 
-<table>
-<tr>
-<td>
-  
-
-⚠️ In the naive implementation of CUDA matrix multiplication,
+ ⚠️ In the naive implementation of CUDA matrix multiplication,
 we configure a block with 1024 threads While this approach works
 for small matrices it is not necessarily optimal in terms 
 of GPU performance and resource utilization.
@@ -24,16 +18,8 @@ especially for larger or more complex computations
 To address naive limitations, we implemented a **block-wise tiled CUDA kernel**, assigning a 16×16 thread block to each matrix tile.  
 Each thread computes one output element — enabling **scalable**, **high-occupancy** GPU utilization.
 
-</td>
-<td>
 
-<img src="images/block.png" width="5000"/>
-
-</td>
-</tr>
-</table>
-
-
+![Performance Plot – Blocked](images/block.png.png)
 
 
 
