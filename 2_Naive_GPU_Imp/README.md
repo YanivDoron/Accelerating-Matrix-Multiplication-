@@ -59,13 +59,14 @@ This structure is typical when analyzing performance-critical GPU code in PyTorc
 
 The results show that even **naive GPU code** can outperform sophisticated CPU libraries when the GPU's compute and memory capabilities are effectively leveraged.
 
----
-### ⚠️ Limitation of the Naive Kernel
----
+
 
 <table>
 <tr>
 <td>
+  ---
+### ⚠️ Limitation of the Naive Kernel
+---
 In the naive implementation of CUDA matrix multiplication,
 we configure a block with 1024 threads While this approach works
 for small matrices it is not necessarily optimal in terms 
