@@ -82,7 +82,7 @@ because the GPU is designed to run many blocks across many SMs in parallel.
 Consequently, this single-block strategy becomes a bottleneck,
 especially for larger or more complex computations
 
-look at : [לדודה](/3_Block_Wise_Tilling)
+look at the next : [ Block-Wise Tiling](/3_Block_Wise_Tilling) for 
 
 
 - Uses 1 block of 1024 threads → engages only 1 SM.  
