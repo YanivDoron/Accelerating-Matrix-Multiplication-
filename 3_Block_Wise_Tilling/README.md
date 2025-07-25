@@ -19,7 +19,7 @@ To address naive limitations, we implemented a **block-wise tiled CUDA kernel**,
 Each thread computes one output element — enabling **scalable**, **high-occupancy** GPU utilization.
 
 
-![Performance Plot – Blocked](images/block.png.png)
+![Performance Plot – Blocked](images/block.png)
 
 
 
