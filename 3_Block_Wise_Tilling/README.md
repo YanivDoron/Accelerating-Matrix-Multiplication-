@@ -86,7 +86,6 @@ The blocked CUDA implementation consistently outperforms both the MKL baseline a
 | Feature                  | Naive CUDA                | Block-Wise CUDA            |
 |--------------------------|---------------------------|----------------------------|
 | Threads per block        | 1024                      | 256 (16×16)                |
-| Number of blocks         | 1                         | (N / 16) × (N / 16)        |
 | SM Utilization           | ❌ Low                    | ✅ High                    |
 | Scalability              | ❌ Poor                   | ✅ Excellent               |
 | Speedup vs MKL (max)     | ~11×                      | ~12.6×                     |
