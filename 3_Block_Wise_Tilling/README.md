@@ -4,7 +4,7 @@
 To address naive limitations, we implemented a **block-wise tiled CUDA kernel**, assigning a 16×16 thread block to each matrix tile.  
 Each thread computes one output element — enabling **scalable**, **high-occupancy** GPU utilization.
 
-![Performance Plot – Naive CUDA](images/block.png)
+
 ---
 
 ### ⚠️ Limitation of the Naive Kernel
@@ -14,6 +14,10 @@ Each thread computes one output element — enabling **scalable**, **high-occupa
 - Not scalable to large matrices.
 
 ---
+
+A better approach is to divide the work across multiple smaller blocks, each with dimensions like 16×16 (256 threads). These blocks can be distributed across multiple SMs, enabling concurrent execution and better throughput. This layout also aligns well with warp execution, improves load balancing, and makes the kernel more scalable to larger matrices.
+
+![Performance Plot – Naive CUDA](images/block.png)
 
 ### ✅ Improvements from Block-Wise Tiling
 
