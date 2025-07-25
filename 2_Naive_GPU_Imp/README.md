@@ -70,7 +70,8 @@ for small matrices it is not necessarily optimal in terms
 of GPU performance and resource utilization.
 
 Limitation:
-Even though the kernel launches 4096 blocks with 1024 threads per block, it still suffers from poor device-level parallelism . Each block uses the maximum number of threads and a high number of registers per thread, which limits the number of concurrent blocks that can reside on a single SM.As a result, only a few blocks are active at any given time, while the rest wait in queue, leading to underutilization of the GPU’s full parallel potential.
+Even though the kernel launches 4096 blocks with 1024 threads per block, it still suffers from poor device-level parallelism . Each block uses the maximum number of threads and a high number of registers per thread, which limits the number of concurrent blocks that can reside on a single SM.
+As a result, only a few blocks are active at any given time, while the rest wait in queue, leading to underutilization of the GPU’s full parallel potential.
 
 - Launches many blocks, but only a few run concurrently per SM
 - High register usage and full thread count per block limit concurrency
