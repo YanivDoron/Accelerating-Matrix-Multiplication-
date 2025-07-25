@@ -61,6 +61,17 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 
 ---
 
+---
+
+### ⚠️ Limitation of the Naive Kernel
+
+- Uses 1 block of 1024 threads → engages only 1 SM.
+- Low GPU occupancy.
+- Not scalable to large matrices.
+
+---
+
+
 ### 📌 Summary
 
 This implementation highlights the **inherent strength of the GPU architecture**, showing that substantial performance gains can be achieved even before applying advanced memory or scheduling optimizations.
