@@ -1,7 +1,9 @@
 # 🧱 Block-Wise Tiling for GPU Parallelism
+
  
 To address naive limitations, we implemented a **block-wise tiled CUDA kernel**, assigning a 16×16 thread block to each matrix tile.  
 Each thread computes one output element — enabling **scalable**, **high-occupancy** GPU utilization.
+
 ![Performance Plot – Naive CUDA](images/block.png)
 ---
 
