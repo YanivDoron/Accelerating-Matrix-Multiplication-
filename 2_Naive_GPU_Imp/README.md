@@ -69,24 +69,16 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 
 
 In the naive implementation of CUDA matrix multiplication,
-
 we configure a block with 1024 threads While this approach works
-
 for small matrices it is not necessarily optimal in terms 
-
 of GPU performance and resource utilization.
 
 Limitation:
 By running only one block, even if it uses the maximum number of
-
 threads allowed per block (1024), we are still engaging just one SM.
-
 This leads to low occupancy at the device level,
-
 because the GPU is designed to run many blocks across many SMs in parallel.
-
 Consequently, this single-block strategy becomes a bottleneck,
-
 especially for larger or more complex computations
 
 
