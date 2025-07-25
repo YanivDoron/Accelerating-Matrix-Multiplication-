@@ -1,5 +1,5 @@
 # 🧠 Optimized CPU Matrix Multiplication (Intel MKL Reference)
-### Previous  : [GPU Architecture ](/0_GPU_Arch)                           Next  : [Block Wise Tilling](/3_Block_Wise_Tilling) 
+### Previous  : [GPU Architecture ](/0_GPU_Arch)                           Next  :  [Naive GPU Implementation](/2_Naive_GPU_Imp)      
 
 ## 📌 Overview
 
