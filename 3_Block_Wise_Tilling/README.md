@@ -1,6 +1,6 @@
 # 🧱 Block-Wise Tiling for GPU Parallelism
 
-### Previous  : [ Block-Wise Tiling](/3_Block_Wise_Tilling)                           Next  : [ Streaming](/4_Streaming)                                            
+### Previous  : [Naive GPU Implementation](/2_Naive_GPU_Imp)                           Next  : [Streaming](/4_Streaming)                                            
 
  
 <table>
