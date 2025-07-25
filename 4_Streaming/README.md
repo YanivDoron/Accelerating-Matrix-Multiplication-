@@ -1,6 +1,19 @@
 # 🧱 Streaming-Based Overlap of Compute and Transfer
 
-### Previous  : [Block Wise Tilling](/3_Block_Wise_Tilling)                           Next  : [Shared Memory](/5_Shared_Memory)                                            
+### Previous  : [Block Wise Tilling](/3_Block_Wise_Tilling)                           Next  : [Shared Memory](/5_Shared_Memory)    
+
+## 🎯 Motivation: Underutilization in Sequential Kernel Launches
+
+In typical CUDA workflows, kernel launches are often performed **sequentially** from a single default stream. This leads to the following problem:
+
+- **Only one kernel runs at a time**, even if others are independent.
+- As a result, **many Streaming Multiprocessors (SMs) sit idle**, especially during short or I/O-bound kernels.
+- The GPU is **underutilized**, and total execution time increases due to poor concurrency.
+  
+![Performance Plot](images/flame1.png)
+
+To solve this, we apply **streaming**, which allows **concurrent kernel execution** by launching kernels across **multiple independent CUDA streams**.
+
 
 ## 🔄 Stream-Based Execution in CUDA
 
