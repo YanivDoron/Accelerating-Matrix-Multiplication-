@@ -101,14 +101,14 @@ Block-wise decomposition is essential for taking full advantage of the GPU archi
 Each block computes a matrix tile → multiple blocks across SMs = full device utilization.  
 Memory latency is better hidden due to concurrency.
 
-![Performance Plot](images/data.png)
+![Performance Plot](images/flame_block.png)
 
 
 ---
 ## 📌 Summary
 The blocked CUDA implementation consistently outperforms both the MKL baseline and the naïve CUDA kernel across all matrix sizes. Starting from a modest gain at size 128×128 (1.59× speedup), the block kernel scales effectively with size, reaching up to 12.61× speedup at 2048×2048. This improvement is driven by better memory coalescing, reduced global memory traffic,  and improved parallelism, making it more efficient and scalable for large matrix multiplication tasks.
+![Performance Plot](images/data.png)
 
-![Performance Plot](images/flame_block.png)
 
 | Feature                  | Naive CUDA                | Block-Wise CUDA            |
 |--------------------------|---------------------------|----------------------------|
