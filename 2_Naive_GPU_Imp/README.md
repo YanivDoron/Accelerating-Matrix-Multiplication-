@@ -82,12 +82,12 @@ because the GPU is designed to run many blocks across many SMs in parallel.
 Consequently, this single-block strategy becomes a bottleneck,
 especially for larger or more complex computations
 
-### look at the solution for this problem  : [ Block-Wise Tiling](/3_Block_Wise_Tilling) 
-
 
 - Uses 1 block of 1024 threads → engages only 1 SM.  
 - Low GPU occupancy.  
 - Not scalable to large matrices.
+
+  ### look at the solution for this problem  : [ Block-Wise Tiling](/3_Block_Wise_Tilling) 
 
 </td>
 <td>
