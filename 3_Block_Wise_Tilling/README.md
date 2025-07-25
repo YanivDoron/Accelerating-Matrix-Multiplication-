@@ -28,7 +28,7 @@ Each thread computes one output element — enabling **scalable**, **high-occupa
 </td>
 <td>
 
-<img src="images/images/block.png" width="2000"/>
+<img src="images/block.png" width="2000"/>
 
 </td>
 </tr>
