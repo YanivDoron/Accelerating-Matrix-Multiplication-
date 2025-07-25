@@ -76,7 +76,7 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 </td>
 <td>
 
-<img src="images/naive_limit.png" width="300"/>
+<img src="images/data.png" width="300"/>
 
 </td>
 </tr>
