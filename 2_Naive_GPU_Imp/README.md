@@ -97,7 +97,7 @@ especially for larger or more complex computations
 </td>
 <td>
 
-<img src="images/data.png" width="300"/>
+<img src="images/data.png" width="700"/>
 
 </td>
 </tr>
