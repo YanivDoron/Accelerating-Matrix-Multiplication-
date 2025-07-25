@@ -92,7 +92,7 @@ The blocked CUDA implementation consistently outperforms both the MKL baseline a
 </td>
 <td>
 
-<img src="images/data.png" width="2000"/>
+<img src="images/data.png" width="3000"/>
 
 </td>
 </tr>
