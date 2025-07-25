@@ -71,6 +71,12 @@ Memory latency is better hidden due to concurrency.
 
 ---
 
+
+<table>
+<tr>
+<td>
+  
+
 ## 📌 Summary
 
 | Feature                  | Naive CUDA                | Block-Wise CUDA            |
@@ -80,6 +86,17 @@ Memory latency is better hidden due to concurrency.
 | SM Utilization           | ❌ Low                    | ✅ High                    |
 | Scalability              | ❌ Poor                   | ✅ Excellent               |
 | Speedup vs MKL (max)     | ~11×                      | ~12.6×                     |
+
+
+</td>
+<td>
+
+<img src="images/data.png" width="2000"/>
+
+</td>
+</tr>
+</table>
+
 
 ---
 
