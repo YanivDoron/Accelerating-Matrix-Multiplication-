@@ -63,6 +63,17 @@ For small matrices (e.g., 128×128 or 256×256), the performance difference betw
 
 As a result, performance gains from blocking may be around **1.5× to 2×** over the naive version.
 
+
+| **Size** | **MKL (ms)** | **Naive (ms)** | **Block (ms)** | **Naive Speedup** | **Block Speedup** |
+|----------|--------------|----------------|----------------|-------------------|-------------------|
+| 128×128  | 0.123        | 0.102          | 0.077          | 1.20×             | 1.59×             |
+| 256×256  | 0.534        | 0.099          | 0.084          | 5.40×             | 6.37×             |
+| 512×512  | 3.900        | 0.330          | 0.349          | 11.83×            | 11.18×            |
+| 1024×1024| 26.826       | 2.944          | 2.354          | 9.11×             | 11.40×            |
+| 2048×2048| 201.054      | 18.137         | 15.945         | 11.09×            | 12.61×            |
+
+![Performance Plot – Blocked](images/graph_block.png)
+
 ---
 
 ### 🔹 When Matrices Are Large
@@ -79,6 +90,9 @@ As matrix sizes grow (e.g., 1024×1024 and beyond), block-wise decomposition bec
 
 This leads to significantly better performance — often achieving **10× to 12× speedup** over the naive implementation.
 
+![Performance Plot – Blocked](images/graph_largeM.png)
+
+
 ---
 
 ### ⚡ Summary
@@ -93,15 +107,6 @@ This leads to significantly better performance — often achieving **10× to 12�
 Block-wise decomposition is essential for taking full advantage of the GPU architecture — especially for large matrices. It improves memory access patterns, reduces latency, and unlocks the parallel processing potential of CUDA.
 
 
-| **Size** | **MKL (ms)** | **Naive (ms)** | **Block (ms)** | **Naive Speedup** | **Block Speedup** |
-|----------|--------------|----------------|----------------|-------------------|-------------------|
-| 128×128  | 0.123        | 0.102          | 0.077          | 1.20×             | 1.59×             |
-| 256×256  | 0.534        | 0.099          | 0.084          | 5.40×             | 6.37×             |
-| 512×512  | 3.900        | 0.330          | 0.349          | 11.83×            | 11.18×            |
-| 1024×1024| 26.826       | 2.944          | 2.354          | 9.11×             | 11.40×            |
-| 2048×2048| 201.054      | 18.137         | 15.945         | 11.09×            | 12.61×            |
-
-![Performance Plot – Blocked](images/graph_block.png)
 
 ---
 
