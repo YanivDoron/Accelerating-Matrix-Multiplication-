@@ -80,6 +80,11 @@ Memory latency is better hidden due to concurrency.
 ## 📌 Summary
 The blocked CUDA implementation consistently outperforms both the MKL baseline and the naïve CUDA kernel across all matrix sizes. Starting from a modest gain at size 128×128 (1.59× speedup), the block kernel scales effectively with size, reaching up to 12.61× speedup at 2048×2048. This improvement is driven by better memory coalescing, reduced global memory traffic,  and improved parallelism, making it more efficient and scalable for large matrix multiplication tasks.
 
+
+
+
+</td>
+<td>
 | Feature                  | Naive CUDA                | Block-Wise CUDA            |
 |--------------------------|---------------------------|----------------------------|
 | Threads per block        | 1024                      | 256 (16×16)                |
@@ -87,11 +92,6 @@ The blocked CUDA implementation consistently outperforms both the MKL baseline a
 | SM Utilization           | ❌ Low                    | ✅ High                    |
 | Scalability              | ❌ Poor                   | ✅ Excellent               |
 | Speedup vs MKL (max)     | ~11×                      | ~12.6×                     |
-
-
-</td>
-<td>
-
 <img src="images/data.png" width="3000"/>
 
 </td>
