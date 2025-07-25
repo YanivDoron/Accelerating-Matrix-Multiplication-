@@ -70,17 +70,13 @@ for small matrices it is not necessarily optimal in terms
 of GPU performance and resource utilization.
 
 Limitation:
-By running only one block, even if it uses the maximum number of
-threads allowed per block (1024), we are still engaging just one SM.
-This leads to low occupancy at the device level,
-because the GPU is designed to run many blocks across many SMs in parallel.
-Consequently, this single-block strategy becomes a bottleneck,
-especially for larger or more complex computations
+Even though the kernel launches 4096 blocks with 1024 threads per block, it still suffers from poor device-level parallelism . Each block uses the maximum number of threads and a high number of registers per thread, which limits the number of concurrent blocks that can reside on a single SM.As a result, only a few blocks are active at any given time, while the rest wait in queue, leading to underutilization of the GPU’s full parallel potential.
 
-
-- Uses 1 block of 1024 threads → engages only 1 SM.  
-- Low GPU occupancy.  
-- Not scalable to large matrices.
+- Launches many blocks, but only a few run concurrently per SM
+- High register usage and full thread count per block limit concurrency
+- Most blocks are serialized, waiting for SM resources
+- Low effective occupancy despite seemingly full utilization
+- Becomes a bottleneck for large-scale or latency-sensitive computations
 
 ![Performance Plot](images/data.png)
   ### look at the solution for this problem  : [ Block-Wise Tiling](/3_Block_Wise_Tilling) 
