@@ -88,7 +88,7 @@ As matrix sizes grow (e.g., 1024×1024 and beyond), block-wise decomposition bec
   - **Memory coalescing** improves, increasing bandwidth efficiency.
   - Thread blocks achieve higher **occupancy** and better **load balancing**.
 
-This leads to significantly better performance — often achieving **10× to 12× speedup** over the naive implementation.
+This leads to significantly better performance — often achieving **10× speedup** over the naive implementation.
 
 ![Performance Plot – Blocked](images/graph_largeM.png)
 
