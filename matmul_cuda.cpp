@@ -5,7 +5,8 @@
 torch::Tensor matmul_cuda(torch::Tensor A1, torch::Tensor A2);
 torch::Tensor matmul_cuda_naive (torch::Tensor A1, torch::Tensor A2);
 torch::Tensor matmul_cuda_naive_block(torch::Tensor A1, torch::Tensor A2);
-torch::Tensor matmul_cuda_streamed(torch::Tensor A1, torch::Tensor A2); // Uncomment if you have a streamed version
+torch::Tensor matmul_cuda_streamed_row(torch::Tensor A1, torch::Tensor A2); // Uncomment if you have a streamed version
+torch::Tensor matmul_cuda_streamed_tiled_blocks(torch::Tensor A1, torch::Tensor A2); // Uncomment if you have a streamed version
 torch::Tensor matmul_cuda_block_SM(torch::Tensor A1, torch::Tensor A2);
 torch::Tensor matmul_cuda_streamed_SM(torch::Tensor A1, torch::Tensor A2);
 torch::Tensor matmul_RT_streamed_cuda(torch::Tensor A1, torch::Tensor A2); // Uncomment if you have a streamed version
@@ -45,7 +46,7 @@ torch::Tensor matmul_naive_block(torch::Tensor A1, torch::Tensor A2) {
 
 torch::Tensor matmul_streamed(torch::Tensor A1, torch::Tensor A2) {
   // Ensure inputs are valid
-  return matmul_cuda_streamed(A1, A2);
+  return matmul_cuda_streamed_row(A1, A2);
 }
 torch::Tensor matmul_block_SM(torch::Tensor A1, torch::Tensor A2) {
   // Ensure inputs are valid
@@ -63,7 +64,10 @@ torch::Tensor matmul_RT_streamed(torch::Tensor A1, torch::Tensor A2) {
   return matmul_RT_streamed_cuda(A1, A2);
 }
 
-
+torch::Tensor matmul_streamed_tileblock(torch::Tensor A1, torch::Tensor A2) {
+  // Ensure inputs are valid
+  return matmul_cuda_streamed_tiled_blocks(A1, A2);
+}
 
 // Expose as `matmul` (exact same name!)
 PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
@@ -74,7 +78,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
   m.def("matmul_block_SM", &matmul_block_SM, "Block Matrix Multiplication with Shared Memory (CUDA)");
   m.def("matmul_streamed_SM", &matmul_streamed_SM, "Streamed Block Matrix Multiplication with Shared Memory (CUDA)");
   m.def("matmul_RT_streamed", &matmul_RT_streamed, "RT Streamed Matrix Multiplication (CUDA)");
+  m.def("matmul_streamed_tileblock",&matmul_streamed_tileblock, "Streamed Matrix Multiplication (CUDA) blocked tile");
 }
-
 
 

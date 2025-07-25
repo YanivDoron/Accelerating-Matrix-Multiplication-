@@ -28,3 +28,6 @@ def matmul_streamed_SM(A1, A2):
 #Use for REGTILE + SharedMem + Streams DeBugging only!
 def matmul_RT_streamed(A1, A2):
     return matmul_cuda.matmul_RT_streamed(A1.contiguous(), A2.contiguous())
+
+def matmul_streamed_tileblock(A1, A2):
+    return matmul_cuda.matmul_streamed_tileblock(A1.contiguous(), A2.contiguous())
