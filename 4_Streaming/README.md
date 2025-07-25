@@ -72,37 +72,81 @@ Nonetheless, **streaming is a valuable tool** for optimizing workloads **when us
 
 ---
 
-## 📊 Running and Profiling the Matrix Multiplication Implementations
+# 📊 Running and Profiling the Matrix Multiplication Implementation
 
-This section explains how to benchmark, profile, and analyze all GPU implementations in the project.
+This section explains how to run, profile, and visualize the performance of the different matrix multiplication implementations included in this project. Each script below plays a specific role in benchmarking GPU and CPU performance, generating visual output, and saving logs for analysis.
 
 ---
 
-### 🔧 Scripts Overview
+## 🔧 Scripts Overview
 
 | Script                   | Description                                                                 |
 |--------------------------|-----------------------------------------------------------------------------|
-| `Benchmark.py`           | Benchmarks all implementations and prints speedup vs MKL                   |
-| `GenerateFlameGraph.py`  | Runs profiler, saves Chrome timeline (log/profile.json)                    |
-| `ShowPerformance.py`     | Runs profiler and saves tabular data to `Profile.txt`                      |
-| `script_benchmark_<X>.sh`| Bash runner for specific kernels across matrix sizes                        |
+| `Benchmark.py`           | Benchmarks the current method and show their runtime + speedup data         |
+| `GenerateFlameGraph.py`  | Profiles a single implementation and generates a Chrome trace timeline      |
+| `ShowPerformance.py`     | Profiles a single implementation and store the data on text file            |
+| `script_benchmark_<X>.sh`| Benchmarks the current matmul against the previeus implementation           |                     
 
 ---
 
-### 📈 `Benchmark.py`
+## 📊 `Benchmark.py`
 
+Benchmarks the current matrix multiplication implementation across multiple matrix sizes.
+compare to CPU-based matrix multiplication using Intel MKL and previeus implementation .
 **What it does:**
-- Runs all GPU matmul implementations on several matrix sizes.
-- Compares performance to MKL and previous kernels.
+- Runs current implementation
+- Measures runtime and calculates speedups.
 
 **Output:**
-- `results/times.npy`
-- `results/speedups.npy`
+- `results/times.npy`: Runtimes (ms) for each method and size.
+- `results/speedups.npy`: Speedup compared to baseline (e.g., MKL or naive).
 
-**Usage:**
+**To run:**
 ```bash
 python Benchmark.py
 ```
+---
+## 🔥 `GenerateFlameGraph.py`
 
+Profiles a single kernel execution using torch.profiler and generates a Chrome-compatible trace.
+
+Output:
+
+log/profile.json: Timeline that can be loaded into chrome://tracing.
+
+```bash
+python GenerateFlameGraph.py
+```
+
+## 📄 `ShowPerformance.py`
+
+Profiles a single kernel execution using torch.profiler and store the data on text file.
+
+Output:
+Profile.txt
+
+```bash
+python ShowPerformance.py
+```
+
+## 🧪 `script_benchmark_<X>.sh`
+Benchmarks the current matrix multiplication implementation across multiple matrix sizes.
+compare to CPU-based matrix multiplication using Intel MKL and previeus implementation .
+
+What it does:
+
+Runs cuurent GPU matrix multiplication across different sizes.
+
+Records runtime and speedups plot to screen.
+
+Output:
+
+**Output:**
+- `results/times.npy`: Runtimes (ms) for each method and size.
+- `results/speedups.npy`: Speedup compared to baseline (MKL and previeus implementation  ).
+
+```bash
+bash script_benchmark_<X>.sh
+```
 
 ### Previous  : [Block Wise Tilling](/3_Block_Wise_Tilling)                           Next  : [Shared Memory](/5_Shared_Memory)    
