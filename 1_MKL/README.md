@@ -122,7 +122,7 @@ Output:
 bash script_benchmark_MKL.sh
 ```
 
-
+### Previous  : [GPU Architecture ](/0_GPU_Arch)                           Next  :  [Naive GPU Implementation](/2_Naive_GPU_Imp)      
 
 
 
