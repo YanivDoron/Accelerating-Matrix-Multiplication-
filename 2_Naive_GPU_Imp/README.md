@@ -60,12 +60,6 @@ This structure is typical when analyzing performance-critical GPU code in PyTorc
 
 The results show that even **naive GPU code** can outperform sophisticated CPU libraries when the GPU's compute and memory capabilities are effectively leveraged.
 
-
-
-<table>
-<tr>
-<td>
-  
 ---
 ### ⚠️ Limitation of the Naive Kernel
 ---
@@ -88,16 +82,9 @@ especially for larger or more complex computations
 - Low GPU occupancy.  
 - Not scalable to large matrices.
 
+![Performance Plot](images/data.png)
   ### look at the solution for this problem  : [ Block-Wise Tiling](/3_Block_Wise_Tilling) 
 
-</td>
-<td>
-
-<img src="images/data.png" width="2000"/>
-
-</td>
-</tr>
-</table>
 
 ### 📌 Summary
 
