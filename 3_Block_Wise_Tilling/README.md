@@ -180,6 +180,7 @@ This section explains how to benchmark, profile, and analyze all GPU implementat
 **Usage:**
 ```bash
 python Benchmark.py
+```
 
 
 ### Previous  : [Naive GPU Implementation](/2_Naive_GPU_Imp)                           Next  : [Streaming](/4_Streaming)             
