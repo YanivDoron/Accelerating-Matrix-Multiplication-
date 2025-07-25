@@ -63,14 +63,24 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 
 ---
 
+<table>
+<tr>
+<td>
+
 ### ⚠️ Limitation of the Naive Kernel
 
-- Uses 1 block of 1024 threads → engages only 1 SM.
-- Low GPU occupancy.
+- Uses 1 block of 1024 threads → engages only 1 SM.  
+- Low GPU occupancy.  
 - Not scalable to large matrices.
 
----
+</td>
+<td>
 
+<img src="images/naive_limit.png" width="300"/>
+
+</td>
+</tr>
+</table>
 
 ### 📌 Summary
 
