@@ -66,6 +66,7 @@ A better approach is to divide the work across multiple smaller blocks, each wit
 Each block computes a matrix tile → multiple blocks across SMs = full device utilization.  
 Memory latency is better hidden due to concurrency.
 
+
 ![Flame Graph – Block](images/flame_block.png)
 
 ---
