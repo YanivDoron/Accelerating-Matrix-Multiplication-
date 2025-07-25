@@ -1,3 +1,4 @@
+
 #include <torch/extension.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -8,7 +9,6 @@
 #define WPT 4          // Work per thread (register tiling: 4x4)
 #define THREADS_X (TILE_N / WPT)
 #define THREADS_Y (TILE_M / WPT) //////
-
 
 // Fully unrolled 4x4 register tiling with static shared-memory tiled GEMM
 __global__ void matmul_kernel(
@@ -83,7 +83,7 @@ __global__ void matmul_kernel(
 
         __syncthreads();
     }
-
+ //
     // Store result
     #pragma unroll
     for (int i = 0; i < WPT; ++i) {
@@ -325,29 +325,35 @@ at::Tensor matmul_cuda_streamed(const at::Tensor A, const at::Tensor B)
 // =============================================
 // 1. BLOCK-WISE SHARED MEMORY IMPLEMENTATION
 // =============================================
+#include <torch/extension.h>
+#include <ATen/cuda/CUDAContext.h>
+#include <vector>
 
 constexpr int TILE = 32;
 
-template <typename scalar_t>
+// ------------------------------------------------------------
+// 1. Shared Memory Block-Tiled Matrix Multiplication (float32)
+// ------------------------------------------------------------
+
 __global__ void matmul_kernel_block_shared_fixed(
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> A,
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> B,
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> C,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> A,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> B,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> C,
     int N) {
 
-    __shared__ scalar_t As[TILE][TILE];
-    __shared__ scalar_t Bs[TILE][TILE];
+    __shared__ float As[TILE][TILE];
+    __shared__ float Bs[TILE][TILE];
 
     int row = blockIdx.y * TILE + threadIdx.y;
     int col = blockIdx.x * TILE + threadIdx.x;
-    scalar_t sum = 0;
+    float sum = 0.0f;
 
     for (int t = 0; t < (N + TILE - 1) / TILE; ++t) {
         int tiled_col = t * TILE + threadIdx.x;
         int tiled_row = t * TILE + threadIdx.y;
 
-        As[threadIdx.y][threadIdx.x] = (row < N && tiled_col < N) ? A[row][tiled_col] : static_cast<scalar_t>(0);
-        Bs[threadIdx.y][threadIdx.x] = (tiled_row < N && col < N) ? B[tiled_row][col] : static_cast<scalar_t>(0);
+        As[threadIdx.y][threadIdx.x] = (row < N && tiled_col < N) ? A[row][tiled_col] : 0.0f;
+        Bs[threadIdx.y][threadIdx.x] = (tiled_row < N && col < N) ? B[tiled_row][col] : 0.0f;
 
         __syncthreads();
 
@@ -365,6 +371,7 @@ at::Tensor matmul_cuda_block_SM(const at::Tensor A, const at::Tensor B) {
     TORCH_CHECK(A.device().is_cuda() && B.device().is_cuda(), "Tensors must be on CUDA");
     TORCH_CHECK(A.dim() == 2 && B.dim() == 2, "Expected 2-D inputs");
     TORCH_CHECK(A.size(1) == B.size(0), "Inner dimensions must match");
+    TORCH_CHECK(A.scalar_type() == torch::kFloat32, "Only float32 is supported");
 
     int N = A.size(0);
     auto C = torch::zeros({N, N}, A.options());
@@ -372,46 +379,43 @@ at::Tensor matmul_cuda_block_SM(const at::Tensor A, const at::Tensor B) {
     dim3 block(TILE, TILE);
     dim3 grid((N + TILE - 1) / TILE, (N + TILE - 1) / TILE);
 
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(A.scalar_type(), "matmul_cuda_block_SM", [&] {
-        matmul_kernel_block_shared_fixed<scalar_t><<<grid, block>>>(
-            A.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>(),
-            B.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>(),
-            C.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>(),
-            N);
-    });
+    matmul_kernel_block_shared_fixed<<<grid, block>>>(
+        A.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>(),
+        B.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>(),
+        C.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>(),
+        N);
 
     cudaDeviceSynchronize();
     return C;
 }
 
-// =============================================
-// 2. STREAMED BLOCK-WISE SHARED MEMORY VERSION
-// =============================================
+// ------------------------------------------------------------------
+// 2. Streamed Shared Memory Matrix Multiplication Kernel (float32)
+// ------------------------------------------------------------------
 
-template <typename scalar_t>
 __global__ void matmul_kernel_block_shared_streamed_fixed(
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> A,
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> B,
-    torch::PackedTensorAccessor<scalar_t, 2, torch::RestrictPtrTraits, size_t> C,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> A,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> B,
+    torch::PackedTensorAccessor<float, 2, torch::RestrictPtrTraits, size_t> C,
     int N,
     int row_offset,
     int row_limit) {
 
-    __shared__ scalar_t As[TILE][TILE];
-    __shared__ scalar_t Bs[TILE][TILE];
+    __shared__ float As[TILE][TILE];
+    __shared__ float Bs[TILE][TILE];
 
     int local_row = blockIdx.y * TILE + threadIdx.y;
     int row = local_row + row_offset;
     int col = blockIdx.x * TILE + threadIdx.x;
 
-    scalar_t sum = 0;
+    float sum = 0.0f;
 
     for (int t = 0; t < (N + TILE - 1) / TILE; ++t) {
         int tiled_col = t * TILE + threadIdx.x;
         int tiled_row = t * TILE + threadIdx.y;
 
-        As[threadIdx.y][threadIdx.x] = (row < row_limit && tiled_col < N) ? A[row][tiled_col] : static_cast<scalar_t>(0);
-        Bs[threadIdx.y][threadIdx.x] = (tiled_row < N && col < N) ? B[tiled_row][col] : static_cast<scalar_t>(0);
+        As[threadIdx.y][threadIdx.x] = (row < row_limit && tiled_col < N) ? A[row][tiled_col] : 0.0f;
+        Bs[threadIdx.y][threadIdx.x] = (tiled_row < N && col < N) ? B[tiled_row][col] : 0.0f;
 
         __syncthreads();
 
@@ -429,6 +433,7 @@ at::Tensor matmul_cuda_streamed_SM(const at::Tensor A, const at::Tensor B) {
     TORCH_CHECK(A.device().is_cuda() && B.device().is_cuda(), "Tensors must be on CUDA");
     TORCH_CHECK(A.dim() == 2 && B.dim() == 2, "Expected 2-D inputs");
     TORCH_CHECK(A.size(1) == B.size(0), "Inner dimensions must match");
+    TORCH_CHECK(A.scalar_type() == torch::kFloat32, "Only float32 is supported");
 
     int N = A.size(0);
     auto C = torch::zeros({N, N}, A.options());
@@ -440,22 +445,20 @@ at::Tensor matmul_cuda_streamed_SM(const at::Tensor A, const at::Tensor B) {
     for (int i = 0; i < NUM_STREAMS; ++i)
         streams[i] = at::cuda::getStreamFromPool();
 
-    AT_DISPATCH_FLOATING_TYPES_AND_HALF(A.scalar_type(), "matmul_cuda_streamed_SM", [&] {
-        auto A_acc = A.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>();
-        auto B_acc = B.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>();
-        auto C_acc = C.packed_accessor<scalar_t, 2, torch::RestrictPtrTraits, size_t>();
+    auto A_acc = A.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>();
+    auto B_acc = B.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>();
+    auto C_acc = C.packed_accessor<float, 2, torch::RestrictPtrTraits, size_t>();
 
-        for (int s = 0; s < NUM_STREAMS; ++s) {
-            int row_start = s * rows_per_stream;
-            int row_end = std::min((s + 1) * rows_per_stream, N);
-            int rows_this = row_end - row_start;
+    for (int s = 0; s < NUM_STREAMS; ++s) {
+        int row_start = s * rows_per_stream;
+        int row_end = std::min((s + 1) * rows_per_stream, N);
+        int rows_this = row_end - row_start;
 
-            dim3 grid((N + TILE - 1) / TILE, (rows_this + TILE - 1) / TILE);
+        dim3 grid((N + TILE - 1) / TILE, (rows_this + TILE - 1) / TILE);
 
-            matmul_kernel_block_shared_streamed_fixed<scalar_t><<<grid, block, 0, streams[s]>>>(
-                A_acc, B_acc, C_acc, N, row_start, row_end);
-        }
-    });
+        matmul_kernel_block_shared_streamed_fixed<<<grid, block, 0, streams[s]>>>(
+            A_acc, B_acc, C_acc, N, row_start, row_end);
+    }
 
     for (auto& stream : streams)
         cudaStreamSynchronize(stream);
