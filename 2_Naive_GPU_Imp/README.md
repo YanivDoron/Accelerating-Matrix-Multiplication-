@@ -1,5 +1,6 @@
 ## ⚡ Naive CUDA Implementation
-### Previous  : [MKL CPU Implementation](/1_MKL)                           Next  : [Block Wise Tilling](/3_Block_Wise_Tilling)    
+### Previous  : [MKL CPU Implementation](/1_MKL)
+### Next  : [Block Wise Tilling](/3_Block_Wise_Tilling)    
 
 To establish a baseline for GPU acceleration benefits, we implemented a **naive CUDA kernel** that performs square matrix multiplication without using shared memory or register tiling.  
 Each CUDA thread is assigned to compute a single output element in the result matrix.
