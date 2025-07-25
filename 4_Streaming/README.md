@@ -43,7 +43,7 @@ From CUDA timeline traces (e.g., Nsight or `nsys`), we observe that the stream-b
 - Multiple streams successfully **launch kernel executions in parallel**.
 - The **timeline shows staggered kernel launches** with **minimal idle gaps**.
 - SMs are actively engaged across multiple streams, indicating that **hardware-level concurrency** is being utilized effectively.
-
+![Performance Plot](images/flame2.png)
 ---
 
 ### ⚠️ Why Performance Gains May Be Limited
