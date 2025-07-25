@@ -66,8 +66,6 @@ The results show that even **naive GPU code** can outperform sophisticated CPU l
 <table>
 <tr>
 <td>
-
-
 In the naive implementation of CUDA matrix multiplication,
 we configure a block with 1024 threads While this approach works
 for small matrices it is not necessarily optimal in terms 
