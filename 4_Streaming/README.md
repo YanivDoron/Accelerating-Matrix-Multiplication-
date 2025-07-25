@@ -68,3 +68,41 @@ While stream-based concurrency improves the **structure and parallelism** of exe
 - The hardware is already saturated by a more efficient block-tiling approach.
 
 Nonetheless, **streaming is a valuable tool** for optimizing workloads **when used appropriately** and with attention to kernel size, dependencies, and synchronization.
+
+
+---
+
+## 📊 Running and Profiling the Matrix Multiplication Implementations
+
+This section explains how to benchmark, profile, and analyze all GPU implementations in the project.
+
+---
+
+### 🔧 Scripts Overview
+
+| Script                   | Description                                                                 |
+|--------------------------|-----------------------------------------------------------------------------|
+| `Benchmark.py`           | Benchmarks all implementations and prints speedup vs MKL                   |
+| `GenerateFlameGraph.py`  | Runs profiler, saves Chrome timeline (log/profile.json)                    |
+| `ShowPerformance.py`     | Runs profiler and saves tabular data to `Profile.txt`                      |
+| `script_benchmark_<X>.sh`| Bash runner for specific kernels across matrix sizes                        |
+
+---
+
+### 📈 `Benchmark.py`
+
+**What it does:**
+- Runs all GPU matmul implementations on several matrix sizes.
+- Compares performance to MKL and previous kernels.
+
+**Output:**
+- `results/times.npy`
+- `results/speedups.npy`
+
+**Usage:**
+```bash
+python Benchmark.py
+```
+
+
+### Previous  : [Block Wise Tilling](/3_Block_Wise_Tilling)                           Next  : [Shared Memory](/5_Shared_Memory)    
