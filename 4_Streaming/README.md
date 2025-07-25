@@ -56,6 +56,8 @@ Despite achieving proper stream overlap, the **overall speedup was minimal** com
 - **Synchronization Overhead**  
   Frequent use of `cudaStreamSynchronize()` introduces **serialization and stalls**, which **reduces the effectiveness of asynchronous execution**.
 
+
+![Performance Plot](images/graph.png)
 ---
 
 ### 📌 Conclusion
