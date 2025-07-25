@@ -5,11 +5,8 @@
 <tr>
 <td>
   
----
-### ⚠️ Limitation of the Naive Kernel
----
 
-In the naive implementation of CUDA matrix multiplication,
+⚠️ In the naive implementation of CUDA matrix multiplication,
 we configure a block with 1024 threads While this approach works
 for small matrices it is not necessarily optimal in terms 
 of GPU performance and resource utilization.
