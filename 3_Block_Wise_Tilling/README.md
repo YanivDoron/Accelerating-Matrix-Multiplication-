@@ -1,14 +1,45 @@
 # 🧱 Block-Wise Tiling for GPU Parallelism
 
  
+<table>
+<tr>
+<td>
+  
+---
+### ⚠️ Limitation of the Naive Kernel
+---
+
+In the naive implementation of CUDA matrix multiplication,
+we configure a block with 1024 threads While this approach works
+for small matrices it is not necessarily optimal in terms 
+of GPU performance and resource utilization.
+
+Limitation:
+By running only one block, even if it uses the maximum number of
+threads allowed per block (1024), we are still engaging just one SM.
+This leads to low occupancy at the device level,
+because the GPU is designed to run many blocks across many SMs in parallel.
+Consequently, this single-block strategy becomes a bottleneck,
+especially for larger or more complex computations
+
 To address naive limitations, we implemented a **block-wise tiled CUDA kernel**, assigning a 16×16 thread block to each matrix tile.  
 Each thread computes one output element — enabling **scalable**, **high-occupancy** GPU utilization.
+
+</td>
+<td>
+
+<img src="images/images/block.png" width="2000"/>
+
+</td>
+</tr>
+</table>
+
+
 
 
 
 A better approach is to divide the work across multiple smaller blocks, each with dimensions like 16×16 (256 threads). These blocks can be distributed across multiple SMs, enabling concurrent execution and better throughput. This layout also aligns well with warp execution, improves load balancing, and makes the kernel more scalable to larger matrices.
 
-![Performance Plot – Naive CUDA](images/block.png)
 
 ### ✅ Improvements from Block-Wise Tiling
 
