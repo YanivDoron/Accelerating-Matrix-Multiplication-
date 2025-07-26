@@ -23,7 +23,11 @@ Given two input matrices
 **A, B ∈ ℝⁿˣⁿ**, with values in **[-1, 1]**,  
 compute their matrix product: C = A × B
 
-Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
+Where each element in the result matrix C is computed as:
+
+$$
+                        C[i][j] = \sum_{k=0}^{N} A[i][k] \cdot B[k][j]
+$$
 
 The implementation aims to compute this efficiently on the GPU using CUDA.
 
@@ -90,6 +94,34 @@ Compared to Intel MKL and Our Castum CUDA kernel:
 | 1792 | 153.10 | 14.13 | 12.03 | 7.35 | 1.94 | 10.84× | 12.73× | 20.83× | 78.97× |
 | 1920 | 184.25 | 19.66 | 15.71 | 9.36 | 2.51 | 9.37× | 11.73× | 19.68× | 73.49× |
 | 2048 | 232.27 | 19.09 | 17.71 | 9.52 | 2.44 | 12.17× | 13.11× | 24.39× | 95.35× |
+
+---
+## 🚀Future Work: Potential Advanced GPU Optimizations
+
+
+- ***Double Buffering in Shared Memory (Validated but Not Fully Integrated Yet)***
+  
+    Overlap computation and memory loading to hide latency and improve pipeline efficiency.
+
+- ***Vectorized Data Loads & Stores (Validated but Not Fully Integrated Yet)***
+  
+    Use vectorized memory instructions to reduce global memory transactions.
+
+- ***Quantization for Faster Integer GEMM (Partly Validated on Small Matrices )***
+  
+    Convert floating-point computations to lower-precision formats like int8 or float16
+
+- ***Full Utilization of All 68 SMs (Validated but Not Fully Integrated Yet)***
+  
+    Scale the kernel launch configuration to engage the entire GPU for maximum throughput.
+
+- ***Improved Streaming Mechanism (Partly Validated on Large Matrices )***
+  
+    Optimize CUDA streams and data partitioning to increase concurrency and reduce idle time.  
+
+
+
+---
 
 
 
