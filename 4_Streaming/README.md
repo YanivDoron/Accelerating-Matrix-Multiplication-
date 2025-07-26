@@ -1,4 +1,4 @@
-# 🧱 Streaming-Based Overlap of Compute and Transfer
+# 🏊🏼 Streaming-Based Overlap of Compute and Transfer
 
 ### Previous  : [Block Wise Tilling](/3_Block_Wise_Tilling)
 
