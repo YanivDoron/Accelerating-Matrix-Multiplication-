@@ -31,14 +31,12 @@ Using shared memory significantly enhances the performance of the block-based ke
 | 1792    | 12.68 ms          | 12.70 ms           | 8.13 ms             | 8.13 ms               | 10.76×                    | 10.75×                     | 16.79×                       | 16.79×                        |
 | 2048    | 13.79 ms          | 15.08 ms           | 9.41 ms             | 9.63 ms               | 14.76×                    | 13.50×                     | 21.64×                       | 21.13×                        |
 
----
 
-### 📈 Improvement Analysis
 
 > ⚠️ **Disclaimer Regarding Shared Memory Usage**  
 Although modern GPUs offer up to 48KB of shared memory per block, in our implementation we intentionally used a **smaller shared memory footprint**. Empirical testing showed that allocating more shared memory did **not** necessarily improve performance—and sometimes even degraded it. This suggests that performance is influenced more by **tiling strategy and memory reuse efficiency** than by raw memory size.
 
----
+
 
 The benchmark results clearly demonstrate the performance benefits of using shared memory in CUDA matrix multiplication kernels. By comparing execution times across four GPU implementations—naive block-based, streamed, and their shared-memory-optimized counterparts—we observe **consistent and substantial speedups** as matrix size increases.
 
