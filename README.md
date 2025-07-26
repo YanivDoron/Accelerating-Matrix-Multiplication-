@@ -101,9 +101,11 @@ Overlap computation and memory loading to hide latency and improve pipeline effi
 ### - Vectorized Data Loads & Stores (Validated but Not Fully Integrated Yet)
 Use vectorized memory instructions to reduce global memory transactions.
 
-### - Quantization for Faster Integer GEMM (Partly Validated on Small Matrices )Convert floating-point computations to lower-precision formats like int8 or float16
+### - Quantization for Faster Integer GEMM (Partly Validated on Small Matrices )
+Convert floating-point computations to lower-precision formats like int8 or float16
 
-### - Full Utilization of All 68 SMs (Validated but Not Fully Integrated Yet)Scale the kernel launch configuration to engage the entire GPU for maximum throughput.
+### - Full Utilization of All 68 SMs (Validated but Not Fully Integrated Yet)
+Scale the kernel launch configuration to engage the entire GPU for maximum throughput.
 
 ### - Improved Streaming Mechanism (Partly Validated on Large Matrices )
 Optimize CUDA streams and data partitioning to increase concurrency and reduce idle time.  
