@@ -1,0 +1,243 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------- Block Wise Tilling Implementation - Matrix Multiplication --------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                             For visual results and detailed benchmarks, see the README.md on GitHub.
+                                             For detailed code documentation, refer to:      kernel_example.cu
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Overview: ------------------------------------
+------------------------------------------------------------------------------
+
+In the naive implementation of CUDA matrix multiplication, we configure a block with 1024 threads.
+ While this approach works for small matrices it is not necessarily optimal in terms of GPU performance and resource utilization.
+
+
+A better approach is to divide the work across multiple smaller blocks, each with dimensions like 16×16 (256 threads).
+These blocks can be distributed across multiple SMs, enabling concurrent execution and better throughput.
+This layout also aligns well with warp execution, improves load balancing, and makes the kernel more scalable to larger matrices.
+
+
+---------------------------------------
+------------ Libraries used -----------
+---------------------------------------
+1. PyTorch (CUDA Extension): Used for defining and launching custom CUDA kernels from Python.
+
+2. CUDA Toolkit:Provides the low-level programming interface for GPU execution,
+    including thread/block management and memory handling.
+
+3. NumPy: Used for CPU-side matrix initialization and validation .
+
+4. MKL Intel’s Math Kernel Library Used for CPU-side matrix performance comparison .
+
+---------------------------------------
+-------Data Structures Employed -------
+---------------------------------------
+
+1. Dense 2D Arrays (Row-Major Layout):
+   Matrices are stored as standard contiguous 2D arrays in memory.
+   MKL expects input matrices in row-major (C-style) layout unless specified otherwise.
+
+2. Float32 or Float64 Tensors:
+   Depending on the configuration, matrices are represented using single-precision (float32) or double-precision (float64) elements,
+   balancing between performance and numerical accuracy.
+
+3. Global Device Memory:
+   Input and output tensors are allocated in CUDA global memory, with each thread accessing elements directly.
+
+4. Thread-Level Output Mapping:
+   Each CUDA thread computes a single element of the output matrix by iterating over the shared dimension.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Initial Analysis: ----------------------------
+------------------------------------------------------------------------------
+---------------------------------------
+------- Performance Analysis: ---------
+---------------------------------------
+
+The blocked CUDA implementation shows a notable improvement over the naive approach by better utilizing GPU parallelism.
+
+Key Findings:
+1. Increased Occupancy: By assigning each block to compute a tile of the output matrix, the GPU can schedule more blocks concurrently per SM,
+   increasing overall utilization.
+
+2. Reduced Thread Pressure: Blocks typically use fewer threads (16×16 ), which lowers register demand per SM and enables
+   higher concurrency compared to 1024-thread blocks.
+
+3. Improved Memory Coalescing:
+   Threads access memory in a structured pattern, leading to better global memory access efficiency.
+
+4. No Data Reuse Yet:
+   Although tiling improves decomposition, the current version does not yet use shared memory,
+   so global memory is still repeatedly accessed for the same data.
+
+Notably, performance improves significantly as matrix sizes grow ,
+since the blocked kernel maintains high occupancy and better scaling compared to the naive version.
+
+Conclusion:
+The blocked layout achieves better scalability and runtime reduction compared to the naive implementation,
+ but further gains are possible by introducing shared memory and register tiling.
+
+
+----------------------------------------
+--------------Flame Graphs:------------- 
+----------------------------------------
+
+1. Kernel Execution
+   - In both implementations, the main kernel occupies the majority of the timeline.
+   - The blocked kernel completes noticeably faster indicating improved efficiency.
+
+2. Tensor Initialization
+   - Both show pre-kernel time spent in `aten::empty` and `aten::zeros` for output tensor allocation.
+   - These steps are minor but necessary for fair comparison with MKL.
+
+3. Synchronization Overhead:
+   - In the naive version `cudaDeviceSynchronize` appears after a longer kernel execution period.
+   - In the blocked version the kernel finishes sooner and `cudaDeviceSynchronize` begins earlier, highlighting reduced total execution time.
+
+4. Parallelism Potential
+   - Although both use one kernel launch, the blocked version hints at higher occupancy and better use of SM resources, due to its faster turnaround time.
+
+Conclusion:
+The flame graph confirms that the blocked implementation reduces kernel duration, maintains similar setup costs,
+and achieves better overall performance — especially visible for large matrix sizes.
+
+
+
+---------------------------------------
+-------------Profiling Data:-----------
+---------------------------------------
+
+- Shared memory used: 0 bytes  
+- Blocks per SM: ~60.24  
+- Warps per SM: ~481.88  
+- Estimated achieved occupancy: 100%
+
+- Grid size: (64, 64, 1)  
+- Block size: (16, 16, 1)
+
+Analysis:
+- The use of 16×16 blocks (256 threads per block) allows for a high number of concurrent blocks per SM, improving GPU utilization.
+- Achieving 100% occupancy indicates optimal use of available registers and warp slots per SM.
+- Even without shared memory, the blocked layout improves execution efficiency due to better resource balancing and memory access patterns.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+---------------------------------- Optimizations: ----------------------------
+------------------------------------------------------------------------------
+
+The blocked CUDA implementation introduces key optimizations over the naive version to improve GPU resource utilization and scalability.
+
+1. 2D Thread Block Structure:
+   Each thread block is configured as 16×16 threads (256 threads total), allowing better mapping to 2D matrix tiles and improving memory coalescing.
+
+2. Tiled Workload Decomposition:
+   The output matrix is divided into smaller tiles, with each thread block responsible for computing one tile. This improves load balancing and
+   enables fine-grained parallelism.
+
+3. Reduced Register Pressure:
+   Using smaller blocks decreases the per-block register footprint, allowing more blocks to run concurrently per SM.
+
+4. Higher Occupancy:
+   The kernel achieves 100% occupancy, maximizing utilization of SMs and hiding memory latency more effectively.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--------------------------- Performance Comparison ---------------------------
+------------------------------------------------------------------------------
+
+For small matrices (e.g., 256×256, 512×512), the performance difference between the naive 
+and blocked implementations is relatively minor. Both achieve significant speedups over MKL, 
+mainly due to the GPU’s parallel nature. However, at this scale, the benefits of optimizations 
+like tiling and occupancy tuning are not fully realized.
+
+
+┌────────┬────────┬────────┬────────┬────────┬────────┐
+│ Size   │  MKL   │ Naïve  │ Block  │ Spd N  │ Spd B  │
+├────────┼────────┼────────┼────────┼────────┼────────┤
+│  256   │ 0.534  │ 0.099  │ 0.084  │ 5.40×  │ 6.37×  │
+│  512   │ 3.900  │ 0.330  │ 0.349  │11.83×  │11.18×  │
+│ 1024   │26.826  │ 2.944  │ 2.354  │ 9.11×  │11.40×  │
+│ 1408   │67.760  │ 7.292  │ 6.161  │ 9.29×  │11.00×  │
+│ 1792   │136.350 │15.097  │12.659  │ 9.03×  │10.77×  │
+│ 2048   │201.054 │18.137  │15.945  │11.09×  │12.61×  │
+└────────┴────────┴────────┴────────┴────────┴────────┘
+
+- Both GPU implementations significantly outperform MKL.
+- The blocked kernel consistently outperforms the naive one, especially as matrix size increases.
+- Speedups of up to 12.6× over MKL are achieved using the blocked method.
+
+------------------------------------------------------
+Scalability for Large Matrices
+------------------------------------------------------
+
+As matrix sizes grow (starting around 2048×2048), the blocked implementation begins to 
+significantly outperform the naive version. This performance divergence becomes more 
+pronounced due to architectural advantages:
+
+- Blocked kernels maintain high occupancy, allowing more thread blocks per SM.
+- Global memory access is more structured, improving memory coalescing.
+- Register pressure is reduced, enabling better latency hiding.
+
+This is evident in the execution times below:
+
+┌────────┬────────────┬────────────┐
+│ Size   │ Naïve (ms) │ Block (ms) │
+├────────┼────────────┼────────────┤
+│ 2048   │   19.39    │   14.77    │
+│ 2304   │   40.21    │   22.49    │
+│ 2560   │   85.25    │   31.93    │
+│ 2816   │  125.97    │   40.52    │
+│ 3328   │  225.29    │   76.53    │
+│ 3584   │  297.23    │   88.96    │
+│ 3840   │  371.69    │  114.27    │
+│ 4096   │  157.56    │  126.00    │
+│ 4352   │  563.06    │  160.42    │
+│ 4608   │  701.37    │  183.39    │
+│ 4864   │  853.96    │  213.17    │
+│ 5120   │  923.89    │  250.61    │
+└────────┴────────────┴────────────┘
+
+- For small matrices, naive and blocked CUDA offer similar speedups over MKL.
+- For large matrices, blocked CUDA becomes much more efficient than the naive version,
+  reducing runtime by 2–4× and achieving up to 12×–13× speedup over MKL.
+- GPU acceleration is essential for modern matrix workloads and offers consistent advantages
+  as data scales.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------- Hardware Acceleration Proposal --------------------
+------------------------------------------------------------------------
+
+To further accelerate matrix multiplication, we suggest:
+   1. Combining CUDA streams to overlap computation and data transfers.
+   2. Shared memory to enable fast tile-level reuse.
+   3. High register utilization through register tiling to reduce memory latency.
+
+These techniques work together to improve GPU occupancy, minimize memory bottlenecks and unlock significantly higher performance on large-scale workloads
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------------------- Summary -------------------------------
+------------------------------------------------------------------------
+
+he blocked CUDA kernel improves significantly over the naive implementation by using smaller thread blocks (e.g., 16×16) and a tiled computation pattern.
+
+Compared to the naive version:
+- It achieves higher SM occupancy and better parallelism.
+- Global memory accesses are more structured and efficient.
+- Runtime is reduced to 20–50% on large matrices.
+
+Compared to Intel MKL:
+- The blocked kernel delivers up to **13× speedup** over MKL.
+- It scales better with matrix size, while MKL performance degrades due to CPU memory and bandwidth limitations.
+
+The blocked implementation provides a strong foundation for further optimization with shared memory and register tiling.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------

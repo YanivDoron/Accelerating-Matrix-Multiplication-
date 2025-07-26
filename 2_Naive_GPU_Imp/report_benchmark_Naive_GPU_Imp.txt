@@ -1,0 +1,186 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------- Naive GPU Implementation - Matrix Multiplication --------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                             For visual results and detailed benchmarks, see the README.md on GitHub.
+                                             For detailed code documentation, refer to:      kernel_example.cu
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Overview: ------------------------------------
+------------------------------------------------------------------------------
+
+To evaluate the performance benefits of GPU acceleration , we implemented a Naive CUDA kernel for square matrix multiplication .
+Methods Was benchmarked across increasing matrix sizes, and the execution times were recorded using preformence counter .
+Each CUDA thread is assigned to compute a single output element in the result matrix.
+
+Despite its simplicity, this naive kernel consistently outperforms Intel MKL,
+achieving up to 10.8× speedup on large matrices (e.g., 1024×1024), thanks to the GPU’s inherent architectural advantages.
+
+---------------------------------------
+------------ Libraries used -----------
+---------------------------------------
+1. PyTorch (CUDA Extension): Used for defining and launching custom CUDA kernels from Python.
+
+2. CUDA Toolkit:Provides the low-level programming interface for GPU execution,
+    including thread/block management and memory handling.
+
+3. NumPy: Used for CPU-side matrix initialization and validation .
+
+4. MKL Intel’s Math Kernel Library Used for CPU-side matrix performance comparison .
+
+---------------------------------------
+-------Data Structures Employed -------
+---------------------------------------
+
+1. Dense 2D Arrays (Row-Major Layout):
+   Matrices are stored as standard contiguous 2D arrays in memory.
+   MKL expects input matrices in row-major (C-style) layout unless specified otherwise.
+
+2. Float32 or Float64 Tensors:
+   Depending on the configuration, matrices are represented using single-precision (float32) or double-precision (float64) elements,
+   balancing between performance and numerical accuracy.
+
+3. Global Device Memory:
+   Input and output tensors are allocated in CUDA global memory, with each thread accessing elements directly.
+
+4. Thread-Level Output Mapping:
+   Each CUDA thread computes a single element of the output matrix by iterating over the shared dimension.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Initial Analysis: ----------------------------
+------------------------------------------------------------------------------
+---------------------------------------
+------- Performance Analysis: ---------
+---------------------------------------
+The naive kernel assigns one thread per output element without using shared memory or tiling.
+
+1. Low GPU Utilization:
+   Only a single block is launched for small matrices, underutilizing available Streaming Multiprocessors (SMs).
+
+2. Global Memory Bottlenecks:
+   Frequent uncoalesced memory accesses and no reuse of data result in high memory latency and poor throughput.
+
+3. Poor Scalability:
+   As matrix size increases, performance does not scale efficiently due to lack of parallelism and memory reuse.
+
+Despite these limitations, the naive implementation still outperforms CPU-based MKL for large matrices due to the GPU’s inherent parallelism.
+
+
+----------------------------------------
+--------------Flame Graphs:------------- 
+----------------------------------------
+The timeline shows that most of the runtime is dominated by the CUDA kernel `matmul_kernel_naive_flat`,
+indicating that the actual matrix computation is the primary bottleneck.
+
+Key observations:
+- Kernel launch is clearly visible and takes the majority of the execution time.
+- A significant portion of pre-kernel time is spent in `aten::empty` and `aten::zeros`, which allocate and initialize the output tensor `C` on the GPU.
+  This setup time is **not part of the kernel itself**, but must be included to ensure a fair comparison with CPU libraries like MKL.
+- No overlap between computation and data transfer, as expected from a naive implementation.
+- CPU-side overhead is minimal compared to GPU execution.
+- No evidence of shared memory usage, concurrent streams or overlapping kernels.
+
+
+---------------------------------------
+-------------Profiling Data:-----------
+---------------------------------------
+- Registers per thread: 58  
+- Shared memory used: 0 bytes  
+- Blocks per SM: ~60.2  
+- Warps per SM: ~1927.5  
+
+- Grid size: (4096, 1, 1)  
+- Block size: (1024, 1, 1)  
+
+ Analysis:
+- The kernel uses no shared memory, relying entirely on global memory access, which limits memory reuse and increases latency.
+- High register usage per thread (58) slightly constrains occupancy, though it is still acceptable for a naive implementation.
+- Grid/block configuration suggests a 1D launch, where each thread computes one output element — matching the naive design.
+- Despite the large number of warps per SM, actual throughput is limited by global memory bottlenecks and lack of data locality optimization.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+---------------------------------- Optimizations: ----------------------------
+------------------------------------------------------------------------------
+
+No optimizations were applied in the naive implementation.  
+This version is intentionally minimal, designed as a baseline for performance comparison.
+This stripped-down design allows us to isolate and highlight the performance benefits of subsequent optimizations.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--------------------------- Performance Comparison ---------------------------
+------------------------------------------------------------------------------
+The table below shows execution times and speedups for the naive CUDA kernel compared to Intel MKL on the CPU.
+
+                              ┌────────┬────────┬────────┬────────┐
+                              │ Size   │ MKL    │ Naïve  │ Speedup│
+                              ├────────┼────────┼────────┼────────┤
+                              │  128   │ 0.123  │ 0.102  │ 1.20×  │
+                              │  256   │ 0.534  │ 0.099  │ 5.40×  │
+                              │  512   │ 3.900  │ 0.330  │11.83×  │
+                              │ 1024   │26.826  │ 2.944  │ 9.11×  │
+                              │ 1280   │49.097  │ 5.467  │ 8.98×  │
+                              │ 1408   │67.760  │ 7.292  │ 9.29×  │
+                              │ 1792   │136.350 │15.097  │ 9.03×  │
+                              │ 2048   │201.054 │18.137  │11.09×  │
+                              └────────┴────────┴────────┴────────┘
+
+In the naive CUDA matrix multiplication kernel, each block is configured with 1024 threads,
+the maximum allowed per block. While this setup works for small matrices, it is not optimal 
+for GPU performance and resource utilization.
+
+-------------------------------
+----------Limitation:----------
+-------------------------------
+
+Although the kernel launches 4096 blocks with 1024 threads each, it still suffers from 
+poor device-level parallelism. The key reasons are:
+
+- High register usage per thread (e.g., 58 registers)
+- No use of shared memory
+- Large blocks consume excessive SM resources
+
+Summary:
+- The naive CUDA implementation outperforms MKL at all sizes, even without shared memory or tiling.
+- Speedups range from 1.2× (small matrices) to over 11× (large matrices), demonstrating the parallel advantage of GPU execution.
+- The gain becomes more consistent and pronounced as the matrix size increases.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------- Hardware Acceleration Proposal --------------------
+------------------------------------------------------------------------
+
+To address the limitations of the naive CUDA implementation, we propose using a fixed block size method for GPU matrix multiplication.
+-------------------------------
+   Fixed Block Size Strategy:
+-------------------------------
+Instead of launching maximum-sized blocks (1024 threads), we configure blocks 
+with a fixed 2D shape—typically 16×16 or 32×32 threads per block. This approach 
+offers several key advantages:
+
+- Improved SM occupancy: Smaller blocks allow more blocks to run concurrently on each SM.
+- Better memory coalescing: 2D indexing matches global memory layout, improving memory access efficiency.
+- Shared memory support: Tiling techniques become easier to implement, enabling data reuse within each block.
+- Scalability: The method scales more effectively with matrix size and adapts better to hardware constraints.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------------------- Summary -------------------------------
+------------------------------------------------------------------------
+
+The naive matrix multiplication kernel assigns one thread per output element and uses no shared memory or tiling.
+ While simple and functional, it leads to inefficient GPU utilization.With 1024 threads per block, the kernel suffers
+from limited concurrency due to high register usage and lack of shared memory, which restricts the number of active blocks per SM.
+
+Despite these limitations, the naive approach still outperforms CPU-based MKL for large matrices, thanks to the GPU’s inherent parallelism.
+However, it serves mainly as a baseline,highlighting the need for further optimizations such as fixed block sizes, shared memory tiling, and register reuse.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------

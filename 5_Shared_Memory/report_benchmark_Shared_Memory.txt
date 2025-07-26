@@ -1,0 +1,242 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------- Shared Memory Implementation - Matrix Multiplication -------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                             For visual results and detailed benchmarks, see the README.md on GitHub.
+                                             For detailed code documentation, refer to:      kernel_example.cu
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Overview: ------------------------------------
+------------------------------------------------------------------------------
+
+Shared memory in CUDA is a fast, low-latency memory space located on-chip and accessible by all threads in the same block.
+Unlike global memory, which resides in DRAM and is shared across the entire GPU, shared memory provides much quicker access,
+typically at a latency similar to registers. Because of this, it is a powerful tool for optimizing performance in GPU program.
+
+Each thread block gets its own dedicated shared memory space. Threads in the block cooperatively
+load data into shared memory a sub part of matrices A and B  , then use this data to perform calculations.
+Synchronization is used to ensure all threads have completed their loads before the computation proceeds.
+
+ Once the necessary computation is done, results can be written back to global memory.
+
+
+
+---------------------------------------
+------------ Libraries used -----------
+---------------------------------------
+1. PyTorch (CUDA Extension): Used for defining and launching custom CUDA kernels from Python.
+
+2. CUDA Toolkit:Provides the low-level programming interface for GPU execution,
+    including thread/block management and memory handling.
+
+3. NumPy: Used for CPU-side matrix initialization and validation .
+
+4. MKL Intel’s Math Kernel Library Used for CPU-side matrix performance comparison .
+
+---------------------------------------
+-------Data Structures Employed -------
+---------------------------------------
+
+1. Dense 2D Arrays (Row-Major Layout):
+   Matrices are stored as standard contiguous 2D arrays in memory.
+   MKL expects input matrices in row-major (C-style) layout unless specified otherwise.
+
+2. Float32 or Float64 Tensors:
+   Depending on the configuration, matrices are represented using single-precision (float32) or double-precision (float64) elements,
+   balancing between performance and numerical accuracy.
+
+3. Shared  Memory:
+   Parts of the input matrices are loaded into shared memory, allowing threads within a block to access reused data efficiently. 
+   Each thread is responsible for loading specific elements into shared memory, and all computation is then performed 
+   using these cached tiles. Output tensors remain in global memory.
+
+4. Thread-Level Output Mapping:
+   Each CUDA thread computes a single element of the output matrix by iterating over the shared dimension.
+
+5. CUDA Streams:
+   Multiple CUDA streams are created to enable concurrent execution of independent matrix tiles. Each stream handles a separate sub-region of the output matrix.
+
+6. Submatrix Slices:
+   Matrices A and B are logically partitioned into smaller tiles. These slices are passed to individual kernel launches per stream without duplicating the data.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Initial Analysis: ----------------------------
+------------------------------------------------------------------------------
+
+The streamed matrix multiplication implementation uses multiple CUDA streams to execute independent tile kernels in parallel.
+This approach aims to increase GPU occupancy and reduce idle time by allowing concurrent execution of non-dependent tasks.
+
+Instead of launching all tiles sequentially on a single default stream,
+the output matrix is divided into tile blocks, each assigned to a separate CUDA stream.
+
+This method is particularly beneficial for medium to large matrix sizes where tile-level parallelism can be exploited effectively.
+The core motivation is to maximize the number of active Streaming Multiprocessors (SMs) and minimize scheduling stalls due to sequential kernel execution.
+
+---------------------------------------
+------- Performance Analysis: ---------
+---------------------------------------
+
+Strengths
+
+   - Enables concurrent execution of multiple kernel instances, reducing total runtime for larger matrices.
+   - Increases effective SM utilization by overlapping work across independent CUDA streams.
+   - Simple integration with existing tiled kernels, requiring minimal changes to kernel logic.
+
+Limitations
+
+   - Overhead from stream setup and multiple kernel launches may negate benefits for small matrix sizes.
+   - Does not optimize data locality or memory reuse, unlike shared memory or register tiling methods.
+   - Host-device synchronization is still required after all streams complete, adding slight latency.
+
+Benchmark Insights
+
+   - For small matrices (128×128, 256×256), no noticeable speedup is observed due to kernel launch overhead dominating.
+   - For large matrices (512×512 and above), measurable improvement appears as tile kernels run concurrently.
+   - When combined with shared memory and register tiling (as in streamed_SM), performance improves further, showing both concurrency and data reuse benefits.
+
+
+
+----------------------------------------
+--------------Flame Graphs:------------- 
+----------------------------------------
+
+From the Flame Graph, we can observe a clear visual difference between the naive/block implementations and the streamed one.
+
+In the naive/block versions , the kernel launches are sequential — each kernel completes before the next begins.
+This is evident from the non-overlapping bars in the timeline and indicates low concurrency.
+
+In contrast, the streamed version  shows multiple CUDA streams  launching kernels that overlap in time.
+These overlaps appear as parallel, stacked bars, which is a strong visual indication of concurrent execution across different SMs.
+
+Despite the clear concurrency in the flame graph:
+Total runtime does not significantly decrease compared to the block implementation.
+
+This is because:
+
+- The kernels are relatively small — not enough work per stream to amortize the stream overhead.
+
+- Host-side synchronization and kernel launch overheads dominate.
+
+Conclusion:
+The flame graph shows that streaming works as intended — kernels are running concurrently across multiple streams.
+However, without optimizing for memory reuse or increasing kernel granularity, actual runtime improvements remain minimal.
+
+Streaming enables concurrency — but performance gains require heavier kernels or additional tiling optimizations to fully utilize the GPU.
+
+
+
+---------------------------------------
+-------------Profiling Data:-----------
+---------------------------------------
+
+ --------(Doesnt changes compared to the Block implementation)----------
+- Shared memory used: 0 bytes  
+- Blocks per SM: ~60.24  
+- Warps per SM: ~481.88  
+- Estimated achieved occupancy: 100%
+
+- Grid size: (64, 64, 1)  
+- Block size: (16, 16, 1)
+
+Analysis:
+- The use of 16×16 blocks (256 threads per block) allows for a high number of concurrent blocks per SM, improving GPU utilization.
+- Achieving 100% occupancy indicates optimal use of available registers and warp slots per SM.
+- Even without shared memory, the blocked layout improves execution efficiency due to better resource balancing and memory access patterns.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+---------------------------------- Optimizations: ----------------------------
+------------------------------------------------------------------------------
+
+The blocked CUDA implementation introduces key optimizations over the naive version to improve GPU resource utilization and scalability.
+
+1. 2D Thread Block Structure:
+   Each thread block is configured as 16×16 threads (256 threads total), allowing better mapping to 2D matrix tiles and improving memory coalescing.
+
+2. Tiled Workload Decomposition:
+   The output matrix is divided into smaller tiles, with each thread block responsible for computing one tile. This improves load balancing and
+   enables fine-grained parallelism.
+
+3. Reduced Register Pressure:
+   Using smaller blocks decreases the per-block register footprint, allowing more blocks to run concurrently per SM.
+
+4. Higher Occupancy:
+   The kernel achieves 100% occupancy, maximizing utilization of SMs and hiding memory latency more effectively.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--------------------------- Performance Comparison ---------------------------
+------------------------------------------------------------------------------
+
+Comparison: Blocked vs. Streaming Implementation
+---------------------------------------------
+
+To evaluate the effectiveness of streaming over simple block-based tiling, we compare the performance of the standard Blocked implementation to
+the Streamed Tile-Based variant across a range of matrix sizes.
+
+The Streaming version partitions the matrix into smaller tiles and launches multiple concurrent kernels using CUDA streams,
+while the Blocked version processes the entire matrix in one launch using a 2D thread block grid.
+
+Execution Time (ms)
+┌────────┬────────────┬───────────────┐
+│ Size   │ Block (ms) │ Streaming (ms)│
+├────────┼────────────┼───────────────┤
+│ 2048   │   14.77    │     15.29     │
+│ 2304   │   22.49    │     21.86     │
+│ 2560   │   31.93    │     30.11     │
+│ 2816   │   40.52    │     40.04     │
+│ 3072   │   58.60    │     52.01     │
+│ 3328   │   76.53    │     66.33     │
+│ 3584   │   88.96    │     83.03     │
+│ 3840   │  114.27    │    103.71     │
+│ 4096   │  126.00    │    123.52     │
+│ 4352   │  160.42    │    151.99     │
+│ 4608   │  183.39    │    180.81     │
+└────────┴────────────┴───────────────┘
+
+Conclusion:
+While Streaming shows slight advantages at medium sizes (e.g., ~10% faster at 3072), the overall difference between the two methods is minor.
+Both achieve similar performance at large scales. The added complexity of stream management in Streaming does 
+not lead to a significant speedup, making the simple Blocked kernel a more practical and maintainable choice for most use
+cases unless overlapping or asynchronous behavior is explicitly needed.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------- Hardware Acceleration Proposal --------------------
+------------------------------------------------------------------------
+
+To further accelerate matrix multiplication, we suggest:
+   1. Shared memory to enable fast tile-level reuse.
+   2. High register utilization through register tiling to reduce memory latency.
+
+These techniques work together to improve GPU occupancy, minimize memory bottlenecks and unlock significantly higher performance on large-scale workloads
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------------------- Summary -------------------------------
+------------------------------------------------------------------------
+
+This approach divides the output matrix into smaller tiles and assigns each tile to a separate CUDA stream. Each stream launches an 
+independent kernel to process its tile, allowing for potential concurrency across Streaming Multiprocessors (SMs).
+
+This methodology aims to:
+- Increase SM utilization by enabling concurrent kernel execution
+- Overlap kernel launches and improve scheduling granularity
+- Avoid monolithic kernel saturation at large matrix sizes
+
+While the design is more complex than traditional blocked kernels, it offers a scalable structure compatible with future optimizations like
+asynchronous memory copies and stream-level overlapping. However, the actual performance benefit remains limited unless additional overlap techniques
+(e.g., data transfer pipelining or double-buffering) are introduced.
+
+While Streaming shows slight advantages at medium sizes (e.g., ~10% faster at 3072), the overall difference between the two methods is minor.
+Both achieve similar performance at large scales. The added complexity of stream management in Streaming does 
+not lead to a significant speedup, making the simple Blocked kernel a more practical and maintainable choice for most use
+cases unless overlapping or asynchronous behavior is explicitly needed.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------

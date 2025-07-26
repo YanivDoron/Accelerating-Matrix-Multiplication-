@@ -1,0 +1,149 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+---------------------------------------------------------- Optimized CPU Matrix Multiplication (Intel MKL) ---------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                             For visual results and detailed benchmarks, see the README.md on GitHub.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Overview: ------------------------------------
+------------------------------------------------------------------------------
+
+This module serves as the CPU-side reference baseline for performance comparisons in our matrix multiplication project.
+It uses Intel’s Math Kernel Library (MKL) to perform high-performance dense matrix multiplication.
+
+Intel MKL is a highly optimized, multithreaded library specifically engineered for numerical computations on modern CPUs.
+By leveraging MKL, we can approach peak CPU performance without manually writing low-level SIMD or multithreaded code.
+
+
+---------------------------------------
+------------ Libraries used -----------
+---------------------------------------
+1. Intel’s Math Kernel Library:
+   Intel MKL provides architecture-aware optimizations across multiple dimensions:
+
+   Multithreading
+   MKL automatically parallelizes matrix multiplication across all available CPU cores using efficient internal threading mechanisms.
+
+   SIMD Vectorization
+   Uses modern vector instruction sets (e.g., AVX2, AVX-512) to compute multiple elements in parallel within each core.
+
+   Cache-Aware Blocking
+   Implements intelligent tiling strategies that optimize data reuse across L1/L2/L3 cache levels, reducing memory access latency.
+
+   NUMA Awareness
+   On multi-socket systems, MKL minimizes memory access latency by scheduling threads and memory allocations according to NUMA topology.
+
+   Highly Tuned Assembly Kernels
+   Intel engineers provide hand-optimized assembly routines that outperform compiler-generated code, yielding near-hardware-limit performance.
+
+---------------------------------------
+-------Data Structures Employed -------
+---------------------------------------
+
+1. Dense 2D Arrays (Row-Major Layout):
+   Matrices are stored as standard contiguous 2D arrays in memory.
+   MKL expects input matrices in row-major (C-style) layout unless specified otherwise.
+
+2. Float32 or Float64 Tensors:
+   Depending on the configuration, matrices are represented using single-precision (float32) or double-precision (float64) elements,
+   balancing between performance and numerical accuracy.
+
+3. Aligned Buffers:
+   Internally, MKL utilizes memory alignment for SIMD access (e.g., 64-byte aligned for AVX-512),
+   ensuring fast vectorized load/store operations.
+
+4. Threaded Work Queues:
+   MKL decomposes large matrix operations into smaller tasks dispatched across CPU cores using thread pools and dynamic scheduling.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Initial Analysis: ----------------------------
+------------------------------------------------------------------------------
+---------------------------------------
+------- Performance Analysis: ---------
+---------------------------------------
+   MKL runtime increases rapidly with matrix size — from ~27 ms (1024×1024) to over 3200 ms (5120×5120).
+   This scaling reflects the expected behavior of dense matrix multiplication.
+
+----------------------------------------
+--------------Flame Graphs:------------- 
+----------------------------------------
+he profiling trace shows the execution of the MKL-backed PyTorch matrix multiplication operation using `aten::mm`.
+
+- Operation Name: aten::mm
+- Category: cpu_op
+- Duration: ~242 ms
+- Matrix Dimensions: 2048 × 2048
+
+- The operation runs entirely on the CPU and is managed internally by PyTorch through a call to MKL.
+- There is no overlap or concurrency with other operations — the full duration is occupied by the matrix multiplication.
+- This confirms that the CPU-based implementation executes serially (from Python’s perspective) and dominates the timeline during its runtime.
+
+-------------------------------
+Conclusion:
+-------------------------------
+
+The MKL-backed `aten::mm` is compute-intensive and blocks the Python thread during execution. While efficient for small and medium sizes,
+it quickly becomes a performance bottleneck as matrix sizes scale.
+GPU acceleration is essential to reduce this latency in high-throughput applications.
+
+---------------------------------------
+-------------Profiling Data:-----------
+---------------------------------------
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+---------------------------------- Optimizations: ----------------------------
+------------------------------------------------------------------------------
+
+No optimizations were applied in the naive implementation.  
+This version is intentionally minimal, designed as a baseline for performance comparison.
+This stripped-down design allows us to isolate and highlight the performance benefits of subsequent optimizations.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--------------------------- Performance Comparison ---------------------------
+------------------------------------------------------------------------------
+MKL is a powerful CPU-side solution for matrix multiplication, offering reliable performance for small to mid-sized matrices.
+However, at larger sizes, it becomes increasingly compute- and memory-bound — highlighting the natural scalability limits
+of CPU architectures for high-throughput GEMM workloads.
+
+               ┌────────┬────────┐
+               │ Size   │ MKL    │ 
+               ├────────┼────────┤
+               │  128   │ 0.123  │ 
+               │  256   │ 0.534  │ 
+               │  512   │ 3.900  │ 
+               │ 1024   │26.826  │
+               │ 1280   │49.097  │
+               │ 1408   │67.760  │
+               │ 1792   │136.350 │
+               │ 2048   │201.054 │
+               └────────┴────────┘
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------- Hardware Acceleration Proposal --------------------
+------------------------------------------------------------------------
+
+Intel MKL demonstrates solid CPU performance,
+but as matrix sizes grow, it becomes clear that general-purpose CPUs face scalability limits in terms of parallelism and memory bandwidth.
+To overcome these bottlenecks, we propose integrating hardware accelerators such as GPUs.
+These offer massive thread-level parallelism and higher throughput, enabling matrix multiplication to run up to 90× faster compared to CPU-only execution.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------------------- Summary -------------------------------
+------------------------------------------------------------------------
+
+This module uses Intel MKL as a CPU baseline for matrix multiplication. MKL leverages multithreading, SIMD and cache-aware optimizations to deliver
+strong performance on small to medium matrices. However, as matrix size increases, CPU scalability becomes limited due to memory and bandwidth bottlenecks.
+For large workloads, GPU acceleration is recommended, offering up to 90× speedup through massive parallelism and higher throughput.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
