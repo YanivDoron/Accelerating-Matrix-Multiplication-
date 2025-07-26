@@ -37,6 +37,12 @@ Shared memory significantly enhances the block-based kernel. While the naive blo
 > ⚠️ **Disclaimer Regarding Shared Memory Usage**  
 Although modern GPUs offer up to 48KB of shared memory per block, in our implementation we intentionally used a **smaller shared memory footprint**. Empirical testing showed that allocating more shared memory did **not** necessarily improve performance—and sometimes even degraded it. This suggests that performance is influenced more by **tiling strategy and memory reuse efficiency** than by raw memory size.
 
+### 🔥 Flame Graph – Block-Wise CUDA
+
+Each block computes a matrix tile → multiple blocks across SMs = full device utilization.  
+Memory latency is better hidden due to concurrency.
+
+![Performance Plot](images/flame.png)
 
 
 ---
