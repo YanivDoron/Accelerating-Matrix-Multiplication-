@@ -73,7 +73,7 @@ This project explores the step-by-step enhancement of matrix multiplication perf
 Compared to Intel MKL and Our Castum CUDA kernel:
 - Achieved **~100× speedup over MKL** on 2048×2048 FP32 matrices.
 - Significant improvements over naive CUDA by optimizing memory access patterns and thread workloads.
-
+![Performance Plot](images/allgraph.png)
 ![Performance Plot](images/gpugraph.png)
 
 | **Matrix Size** | **MKL (ms)** | **Naive (ms)** | **Naive Block (ms)** | **Shared Memory (ms)** | **Register Tiling (ms)** | **Speedup Naive** | **Speedup NaiveBlk** | **Speedup SharedMem** | **Speedup RegTile** |
