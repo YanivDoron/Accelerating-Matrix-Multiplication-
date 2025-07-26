@@ -1,4 +1,5 @@
 ## 🚀 Leveraging Shared Memory for Data Reuse in CUDA
+### Previous  : [Streaming](/4_Streaming)                           Next  : [Register Tilling](/6_Register_Tilling)    
 
 Shared memory in CUDA is a fast, low-latency memory space located on-chip and accessible by all threads in the same block. Unlike global memory, which resides in DRAM and is shared across the entire GPU, shared memory provides much quicker access—typically with latency comparable to register memory. Because of this, it is a powerful tool for optimizing performance in GPU programs.
 
@@ -124,7 +125,7 @@ Output:
 bash script_benchmark_<X>.sh
 ```
 
-### Previous  : [streaming](/4_Streaming)                           Next  : [Register Tilling](/6_Register_Tilling)    
+### Previous  : [Streaming](/4_Streaming)                           Next  : [Register Tilling](/6_Register_Tilling)    
 
 
 
