@@ -23,9 +23,9 @@ Given two input matrices
 **A, B ∈ ℝⁿˣⁿ**, with values in **[-1, 1]**,  
 compute their matrix product: C = A × B
 
-Where each element in the result matrix C is computed as: C[i][j] = ∑ A[i][k] * B[k][j]
+Where each element in the result matrix C is computed as:
 
-$C[i][j] = \sum_{k=0}^{N} A[i][k] \cdot B[k][j]$
+                        $C[i][j] = \sum_{k=0}^{N} A[i][k] \cdot B[k][j]$
 
 The implementation aims to compute this efficiently on the GPU using CUDA.
 
