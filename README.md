@@ -38,7 +38,7 @@ The implementation aims to compute this efficiently on the GPU using CUDA.
 - **FP32 Precision:** All computations are done in 32-bit float (no quantization).
 - **No Quantization:** This implementation avoids any form of reduced precision for maximum accuracy.
 
-
+---
 
 ## 📚 Chronological Progression of GPU Optimizations
 
@@ -68,6 +68,8 @@ This project explores the step-by-step enhancement of matrix multiplication perf
   
   Each thread computes a small output sub-block using registers. This minimizes memory access and leverages low-latency register files for peak arithmetic throughput.
 
+  
+
 ## 📈 Benchmark Results
 
 Compared to Intel MKL and Our Castum CUDA kernel:
@@ -96,6 +98,7 @@ Compared to Intel MKL and Our Castum CUDA kernel:
 | 2048 | 232.27 | 19.09 | 17.71 | 9.52 | 2.44 | 12.17× | 13.11× | 24.39× | 95.35× |
 
 ---
+
 ## 🔍Future Work: Potential Advanced GPU Optimizations
 
 
