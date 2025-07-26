@@ -15,8 +15,9 @@ The main benefit of shared memory is speed. Reading from and writing to shared m
 
 ### 📊 Benchmark Results
 
-The benchmark results clearly demonstrate the performance benefits of using shared memory in CUDA matrix multiplication kernels. By comparing execution times across four GPU implementations—naive block-based,  streamed, and their shared-memory optimized versions—we observe consistent and substantial speedups as matrix size increases.
-Using shared memory significantly enhances the performance of the block-based kernel. While the naive block version reaches a 14.76× speedup at size 2048×2048, the shared memory variant achieves 21.64×—a gain of nearly 50%. This improvement grows consistently with matrix size, showing that shared memory greatly reduces global memory access and boosts data reuse within each tile, making the block kernel far more efficient.
+The benchmark results clearly demonstrate the performance benefits of using shared memory in CUDA matrix multiplication kernels. By comparing execution times across four GPU implementations—naive block-based, streamed, and their shared-memory-optimized counterparts—we observe **consistent and substantial speedups** as matrix size increases.
+
+Shared memory significantly enhances the block-based kernel. While the naive block version achieves a 14.76× speedup at size 2048×2048, the shared memory version reaches **21.64×**—an improvement of nearly **50%**. This improvement scales with problem size, showing how shared memory effectively reduces global memory traffic and increases data reuse, making the block kernel far more efficient.
 
 
 ![Performance Plot](images/graph.png)
@@ -38,7 +39,5 @@ Although modern GPUs offer up to 48KB of shared memory per block, in our impleme
 
 
 
-The benchmark results clearly demonstrate the performance benefits of using shared memory in CUDA matrix multiplication kernels. By comparing execution times across four GPU implementations—naive block-based, streamed, and their shared-memory-optimized counterparts—we observe **consistent and substantial speedups** as matrix size increases.
 
-Shared memory significantly enhances the block-based kernel. While the naive block version achieves a 14.76× speedup at size 2048×2048, the shared memory version reaches **21.64×**—an improvement of nearly **50%**. This improvement scales with problem size, showing how shared memory effectively reduces global memory traffic and increases data reuse, making the block kernel far more efficient.
 
