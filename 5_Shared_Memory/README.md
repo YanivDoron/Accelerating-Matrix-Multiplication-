@@ -3,6 +3,7 @@
 Shared memory in CUDA is a fast, low-latency memory space located on-chip and accessible by all threads in the same block. Unlike global memory, which resides in DRAM and is shared across the entire GPU, shared memory provides much quicker access—typically with latency comparable to register memory. Because of this, it is a powerful tool for optimizing performance in GPU programs.
 
 Each thread block gets its own dedicated shared memory space. Threads in the block cooperatively load a sub-region of matrices **A** and **B** into shared memory and use this data for computation. Synchronization is required to ensure all threads complete their loads before the computation proceeds. Afterward, results are written back to global memory.
+
 ![Performance Plot](images/shared_arch.png)
 ---
 
