@@ -96,7 +96,7 @@ Compared to Intel MKL and Our Castum CUDA kernel:
 | 2048 | 232.27 | 19.09 | 17.71 | 9.52 | 2.44 | 12.17× | 13.11× | 24.39× | 95.35× |
 
 ---
-## 🚀Future Work: Potential Advanced GPU Optimizations
+## 🔍Future Work: Potential Advanced GPU Optimizations
 
 
 - ***Double Buffering in Shared Memory (Validated but Not Fully Integrated Yet)***
