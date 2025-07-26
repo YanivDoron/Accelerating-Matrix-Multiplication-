@@ -6,6 +6,7 @@ Until now, each thread in the CUDA kernel was responsible for computing a **sing
 
 As block sizes increase (e.g., from 16×16 to 32×32), **shared memory usage grows**, and data reuse becomes even more critical. Register tiling complements shared memory tiling by enabling **reuse within threads**, while shared memory enables reuse **across threads** in a block. This synergy is essential for sustaining **high throughput** and scaling matrix size efficiently.
 
+![Performance Plot](images/regtile.png)
 ---
 
 ### 🧮 Execution Hierarchy for 1024×1024 GEMM with Register Tiling
@@ -29,6 +30,8 @@ Adding register tiling to the shared memory implementation allows us to restruct
 ---
 
 ### 📊 Performance Results
+
+![Performance Plot](images/graph.png)
 
 | **Size** | **MKL (ms)** | **Shared Memory (ms)** | **Register Tiling (ms)** | **Spd SM** | **Spd RT** |
 |--------:|--------------:|------------------------:|--------------------------:|-----------:|-----------:|
