@@ -31,6 +31,15 @@ Adding register tiling to the shared memory implementation allows us to restruct
 
 ### 📊 Performance Results
 
+The results demonstrate a consistent and **significant improvement** in execution time when combining **Shared Memory** with **Register Tiling**. While shared memory alone provides a strong boost over MKL, **Register Tiling achieves even higher speedups** by maximizing register utilization and reducing memory latency.
+
+At small sizes (e.g., 128×128), the difference is minor due to instruction overhead and limited thread utilization.  
+However, as matrix size grows, Register Tiling shows **superior scalability**, reaching a **105× speedup** over MKL at 2048×2048—thanks to:
+- Fewer memory accesses
+- Zero shared memory bank conflicts
+- Higher computational throughput per thread
+
+
 ![Performance Plot](images/graph.png)
 
 | **Size** | **MKL (ms)** | **Shared Memory (ms)** | **Register Tiling (ms)** | **Spd SM** | **Spd RT** |
@@ -43,17 +52,6 @@ Adding register tiling to the shared memory implementation allows us to restruct
 | 1792    | 153.95        | 6.69                    | 1.80                      | 23.02×     | 85.73×     |
 | 2048    | 246.70        | 9.40                    | 2.34                      | 26.24×     | 105.49×    |
 
----
-
-### 🔍 Improvement Analysis
-
-The results demonstrate a consistent and **significant improvement** in execution time when combining **Shared Memory** with **Register Tiling**. While shared memory alone provides a strong boost over MKL, **Register Tiling achieves even higher speedups** by maximizing register utilization and reducing memory latency.
-
-At small sizes (e.g., 128×128), the difference is minor due to instruction overhead and limited thread utilization.  
-However, as matrix size grows, Register Tiling shows **superior scalability**, reaching a **105× speedup** over MKL at 2048×2048—thanks to:
-- Fewer memory accesses
-- Zero shared memory bank conflicts
-- Higher computational throughput per thread
 
 
 ---
