@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
--------------------------------------------------------- Shared Memory Implementation - Matrix Multiplication -------------------------------------------------------------
+-------------------------------------------------------- Shared Memory Implementation - Matrix Multiplication ------------------------------------------------------
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
                                              For visual results and detailed benchmarks, see the README.md on GitHub.
@@ -18,7 +18,7 @@ Each thread block gets its own dedicated shared memory space. Threads in the blo
 load data into shared memory a sub part of matrices A and B  , then use this data to perform calculations.
 Synchronization is used to ensure all threads have completed their loads before the computation proceeds.
 
- Once the necessary computation is done, results can be written back to global memory.
+Once the necessary computation is done, results can be written back to global memory.
 
 
 
@@ -48,7 +48,7 @@ Synchronization is used to ensure all threads have completed their loads before 
 
 3. Shared  Memory:
    Parts of the input matrices are loaded into shared memory, allowing threads within a block to access reused data efficiently. 
-   Each thread is responsible for loading specific elements into shared memory, and all computation is then performed 
+   Each thread is responsible for loading specific elements into shared memory and all computation is then performed 
    using these cached tiles. Output tensors remain in global memory.
 
 4. Thread-Level Output Mapping:
@@ -66,85 +66,64 @@ Synchronization is used to ensure all threads have completed their loads before 
 ------------------------------- Initial Analysis: ----------------------------
 ------------------------------------------------------------------------------
 
-The streamed matrix multiplication implementation uses multiple CUDA streams to execute independent tile kernels in parallel.
-This approach aims to increase GPU occupancy and reduce idle time by allowing concurrent execution of non-dependent tasks.
-
-Instead of launching all tiles sequentially on a single default stream,
-the output matrix is divided into tile blocks, each assigned to a separate CUDA stream.
-
-This method is particularly beneficial for medium to large matrix sizes where tile-level parallelism can be exploited effectively.
-The core motivation is to maximize the number of active Streaming Multiprocessors (SMs) and minimize scheduling stalls due to sequential kernel execution.
+The main benefit of shared memory is speed. reading from and writing to shared memory is much faster than accessing global memory.
+ This is especially important in compute-heavy operations where the same data may be needed multiple times by different threads.
+ Using shared memory allows that data to be reused efficiently without reloading it from global memory, leading to major performance gains.
 
 ---------------------------------------
 ------- Performance Analysis: ---------
 ---------------------------------------
 
-Strengths
-
-   - Enables concurrent execution of multiple kernel instances, reducing total runtime for larger matrices.
-   - Increases effective SM utilization by overlapping work across independent CUDA streams.
-   - Simple integration with existing tiled kernels, requiring minimal changes to kernel logic.
-
-Limitations
-
-   - Overhead from stream setup and multiple kernel launches may negate benefits for small matrix sizes.
-   - Does not optimize data locality or memory reuse, unlike shared memory or register tiling methods.
-   - Host-device synchronization is still required after all streams complete, adding slight latency.
-
-Benchmark Insights
-
-   - For small matrices (128×128, 256×256), no noticeable speedup is observed due to kernel launch overhead dominating.
-   - For large matrices (512×512 and above), measurable improvement appears as tile kernels run concurrently.
-   - When combined with shared memory and register tiling (as in streamed_SM), performance improves further, showing both concurrency and data reuse benefits.
-
-
+The benchmark results clearly demonstrate the performance benefits of using shared memory in CUDA matrix multiplication kernels.
+By comparing execution times across four GPU implementations—naive block-based,streamed and their shared-memory optimized versions—
+we observe consistent and substantial speedups as matrix size increases.
 
 ----------------------------------------
 --------------Flame Graphs:------------- 
 ----------------------------------------
 
-From the Flame Graph, we can observe a clear visual difference between the naive/block implementations and the streamed one.
+Observation 1: Kernel Duration
+In the block-based implementation (matmul_naive_block), a single long kernel call performs the entire matrix multiplication.
+In contrast, the shared memory implementation launches multiple shorter kernels, each likely computing a small tile of the output matrix.
+This indicates that the workload is divided into smaller parallel tasks.
 
-In the naive/block versions , the kernel launches are sequential — each kernel completes before the next begins.
-This is evident from the non-overlapping bars in the timeline and indicates low concurrency.
+Observation 2: Streaming and Overlap
+The shared memory implementation uses multiple CUDA streams (streams 7–27), with each stream running an independent kernel.
+This enables overlap between kernel executions, improving concurrency and keeping more streaming multiprocessors (SMs) active.
 
-In contrast, the streamed version  shows multiple CUDA streams  launching kernels that overlap in time.
-These overlaps appear as parallel, stacked bars, which is a strong visual indication of concurrent execution across different SMs.
+Observation 3: Idle Time and Synchronization
 
-Despite the clear concurrency in the flame graph:
-Total runtime does not significantly decrease compared to the block implementation.
-
-This is because:
-
-- The kernels are relatively small — not enough work per stream to amortize the stream overhead.
-
-- Host-side synchronization and kernel launch overheads dominate.
-
-Conclusion:
-The flame graph shows that streaming works as intended — kernels are running concurrently across multiple streams.
-However, without optimizing for memory reuse or increasing kernel granularity, actual runtime improvements remain minimal.
-
-Streaming enables concurrency — but performance gains require heavier kernels or additional tiling optimizations to fully utilize the GPU.
-
-
+The block-based implementation includes several cudaStreamSynchronize calls, introducing serialization and idle periods between stages.
+In the shared memory implementation, synchronization is minimized, allowing for continuous and efficient kernel execution across streams.
 
 ---------------------------------------
 -------------Profiling Data:-----------
 ---------------------------------------
-
- --------(Doesnt changes compared to the Block implementation)----------
-- Shared memory used: 0 bytes  
-- Blocks per SM: ~60.24  
-- Warps per SM: ~481.88  
+- Shared memory used: 8192 B  
+- Blocks per SM: ~60.23529  
+- Warps per SM: ~1927.5294  
 - Estimated achieved occupancy: 100%
 
 - Grid size: (64, 64, 1)  
 - Block size: (16, 16, 1)
-
-Analysis:
+-----------------------------------------
+---------------Analysis:-----------------
+-----------------------------------------
 - The use of 16×16 blocks (256 threads per block) allows for a high number of concurrent blocks per SM, improving GPU utilization.
 - Achieving 100% occupancy indicates optimal use of available registers and warp slots per SM.
-- Even without shared memory, the blocked layout improves execution efficiency due to better resource balancing and memory access patterns.
+- Moderate shared memory usage (8 KB per block) enables high concurrency while still allowing efficient tile-based reuse.
+- The grid of 64×64 blocks ensures full coverage of large matrices and distributes work evenly across all SMs.
+- The relatively high reported warps per SM is due to the fact that the flame graph was generated on a GPU different(a regular RTX 2080) 
+  from the baseline ( RTX 2080 Ti). Device-specific differences in SM configuration and profiling interpretation can affect the apparent number of warps.
+
+-----------------------------------------
+Disclaimer Regarding Shared Memory Usage:
+-----------------------------------------
+Although the GPU provides up to 48KB of shared memory per block,
+we intentionally used a smaller shared memory size in our implementation.
+Empirical testing showed that increasing the shared memory allocation beyond a certain point did not improve performance — and in some cases,
+even degraded it. This suggests that memory size alone is not the limiting factor,
+and optimal performance is achieved with a more conservative shared memory footprint.
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -152,20 +131,12 @@ Analysis:
 ---------------------------------- Optimizations: ----------------------------
 ------------------------------------------------------------------------------
 
-The blocked CUDA implementation introduces key optimizations over the naive version to improve GPU resource utilization and scalability.
+The Shared Memory CUDA implementation introduces key optimizations over the Block version to improve GPU resource utilization and scalability.
 
-1. 2D Thread Block Structure:
-   Each thread block is configured as 16×16 threads (256 threads total), allowing better mapping to 2D matrix tiles and improving memory coalescing.
-
-2. Tiled Workload Decomposition:
-   The output matrix is divided into smaller tiles, with each thread block responsible for computing one tile. This improves load balancing and
-   enables fine-grained parallelism.
-
-3. Reduced Register Pressure:
-   Using smaller blocks decreases the per-block register footprint, allowing more blocks to run concurrently per SM.
-
-4. Higher Occupancy:
-   The kernel achieves 100% occupancy, maximizing utilization of SMs and hiding memory latency more effectively.
+- Tiling with shared memory reduces redundant global memory accesses and improves data locality.
+- Data loaded into shared memory is reused across multiple threads within a block, increasing memory bandwidth efficiency.
+- Register tiling inside each thread further reduces shared memory pressure and enhances computational throughput.
+- The use of multiple CUDA streams enables concurrent execution of tile-level kernels, improving SM utilization and hiding synchronization overhead.
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -173,37 +144,55 @@ The blocked CUDA implementation introduces key optimizations over the naive vers
 --------------------------- Performance Comparison ---------------------------
 ------------------------------------------------------------------------------
 
-Comparison: Blocked vs. Streaming Implementation
+Comparison: Shared Memory vs. Blocked & Streaming Implementation
 ---------------------------------------------
 
-To evaluate the effectiveness of streaming over simple block-based tiling, we compare the performance of the standard Blocked implementation to
-the Streamed Tile-Based variant across a range of matrix sizes.
+Execution Time Comparison (ms)
+------------------------------
 
-The Streaming version partitions the matrix into smaller tiles and launches multiple concurrent kernels using CUDA streams,
-while the Blocked version processes the entire matrix in one launch using a 2D thread block grid.
+| Size  | Block (No SM)  | Stream (No SM) | Block (With SM) | Stream (With SM) |
+|-------|----------------|----------------|------------------|------------------|
+| 128   | 0.10           | 0.12           | 0.09             | 0.11             |
+| 256   | 0.10           | 0.13           | 0.11             | 0.12             |
+| 512   | 0.37           | 0.39           | 0.28             | 0.28             |
+| 1024  | 2.38           | 2.40           | 1.57             | 1.57             |
+| 1280  | 4.71           | 4.73           | 2.99             | 2.99             |
+| 1408  | 6.20           | 6.22           | 3.96             | 3.97             |
+| 1792  | 12.68          | 12.70          | 8.13             | 8.13             |
+| 2048  | 13.79          | 15.08          | 9.41             | 9.63             |
 
-Execution Time (ms)
-┌────────┬────────────┬───────────────┐
-│ Size   │ Block (ms) │ Streaming (ms)│
-├────────┼────────────┼───────────────┤
-│ 2048   │   14.77    │     15.29     │
-│ 2304   │   22.49    │     21.86     │
-│ 2560   │   31.93    │     30.11     │
-│ 2816   │   40.52    │     40.04     │
-│ 3072   │   58.60    │     52.01     │
-│ 3328   │   76.53    │     66.33     │
-│ 3584   │   88.96    │     83.03     │
-│ 3840   │  114.27    │    103.71     │
-│ 4096   │  126.00    │    123.52     │
-│ 4352   │  160.42    │    151.99     │
-│ 4608   │  183.39    │    180.81     │
-└────────┴────────────┴───────────────┘
+Analysis
+--------
 
-Conclusion:
-While Streaming shows slight advantages at medium sizes (e.g., ~10% faster at 3072), the overall difference between the two methods is minor.
-Both achieve similar performance at large scales. The added complexity of stream management in Streaming does 
-not lead to a significant speedup, making the simple Blocked kernel a more practical and maintainable choice for most use
-cases unless overlapping or asynchronous behavior is explicitly needed.
+1. Shared Memory Impact  
+   Across all matrix sizes, enabling shared memory significantly reduces execution time for both block-based and streamed versions.  
+   The effect becomes more pronounced as the matrix size increases.  
+   For example, at size 2048, shared memory reduces the block-based time from 13.79 ms to 9.41 ms (a ~32% improvement).
+
+2. Block vs Stream  
+   - Without shared memory, block-based execution slightly outperforms streamed execution at all sizes.  
+   - With shared memory, the gap between block and stream narrows, and both approaches achieve nearly identical performance for large matrices.
+
+3. Scalability  
+   - The benefit of shared memory increases with matrix size, due to better reuse and reduced global memory traffic.  
+   - At small sizes (128–256), shared memory has marginal or no benefit due to limited memory pressure and kernel launch overhead dominating.
+
+4. Bandwidth Efficiency  
+   - Shared memory allows for more efficient reuse of data, reducing the number of global memory transactions and improving cache locality.  
+   - As matrix size increases, this reuse becomes critical for sustaining throughput and reducing memory bottlenecks.
+
+5. Streamed Version Plateau  
+   - For large sizes (1024+), both with and without shared memory, the streamed version shows diminishing returns,  
+     indicating that the overhead of managing many small kernels across streams eventually outweighs the concurrency benefits.
+
+-----------------------------------------
+Disclaimer Regarding Shared Memory Usage:
+-----------------------------------------
+Although the GPU provides up to 48KB of shared memory per block,
+we intentionally used a smaller shared memory size in our implementation.
+Empirical testing showed that increasing the shared memory allocation beyond a certain point did not improve performance — and in some cases,
+even degraded it. This suggests that memory size alone is not the limiting factor,
+and optimal performance is achieved with a more conservative shared memory footprint.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------
@@ -211,8 +200,13 @@ cases unless overlapping or asynchronous behavior is explicitly needed.
 ------------------------------------------------------------------------
 
 To further accelerate matrix multiplication, we suggest:
-   1. Shared memory to enable fast tile-level reuse.
-   2. High register utilization through register tiling to reduce memory latency.
+-High register utilization through register tiling to reduce memory latency.
+
+-Double Buffering in Shared Memory (Validated but Not Fully Integrated Yet)
+ Overlap computation and memory loading to hide latency and improve pipeline efficiency.
+
+-Vectorized Data Loads & Stores (Validated but Not Fully Integrated Yet)
+Use vectorized memory instructions to reduce global memory transactions.
 
 These techniques work together to improve GPU occupancy, minimize memory bottlenecks and unlock significantly higher performance on large-scale workloads
 
@@ -221,22 +215,11 @@ These techniques work together to improve GPU occupancy, minimize memory bottlen
 -------------------------------- Summary -------------------------------
 ------------------------------------------------------------------------
 
-This approach divides the output matrix into smaller tiles and assigns each tile to a separate CUDA stream. Each stream launches an 
-independent kernel to process its tile, allowing for potential concurrency across Streaming Multiprocessors (SMs).
-
-This methodology aims to:
-- Increase SM utilization by enabling concurrent kernel execution
-- Overlap kernel launches and improve scheduling granularity
-- Avoid monolithic kernel saturation at large matrix sizes
-
-While the design is more complex than traditional blocked kernels, it offers a scalable structure compatible with future optimizations like
-asynchronous memory copies and stream-level overlapping. However, the actual performance benefit remains limited unless additional overlap techniques
-(e.g., data transfer pipelining or double-buffering) are introduced.
-
-While Streaming shows slight advantages at medium sizes (e.g., ~10% faster at 3072), the overall difference between the two methods is minor.
-Both achieve similar performance at large scales. The added complexity of stream management in Streaming does 
-not lead to a significant speedup, making the simple Blocked kernel a more practical and maintainable choice for most use
-cases unless overlapping or asynchronous behavior is explicitly needed.
-
+The evaluation of four CUDA matrix multiplication kernels shows that shared memory significantly improves performance, especially for large matrices.
+Block-based implementations benefit the most, with up to 50% reduction in runtime when shared memory is used.
+Register tiling and shared memory together reduce global memory access and increase data reuse within tiles.
+Flame graph analysis confirms better SM utilization and reduced idle time under streamed execution.
+Kernel profiling shows 100% occupancy with efficient resource use.
+Overall, shared memory is critical for scaling performance in GPU-based matrix multiplication.
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------

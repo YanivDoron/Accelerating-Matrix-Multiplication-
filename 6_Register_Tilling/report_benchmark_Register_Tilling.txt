@@ -1,0 +1,243 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-------------------------------------------------------- Register Tilling Implementation - Matrix Multiplication ------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                             For visual results and detailed benchmarks, see the README.md on GitHub.
+                                             For detailed code documentation, refer to:      kernel_example.cu
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Overview: ------------------------------------
+------------------------------------------------------------------------------
+
+Until now, each thread in the CUDA kernel was responsible for computing a single output element in the result matrix per launch.
+While simple, this approach underutilizes the available registers per thread and leads to more memory accesses where the same data from
+shared or global memory must be reloaded by multiple threads for neighboring computations.
+Register tiling solves this inefficiency by assigning each thread to compute a small tile of the output matrix (4×4 elements),
+instead of just one. This allows each thread to reuse data already loaded into registers, significantly reducing the need to 
+reload rows of A or columns of B from shared memory
+
+
+As a result, we reduce memory bandwidth pressure As block sizes increase (from 16×16 to 32×32 - in term of elements ),
+shared memory usage also grows and data reuse becomes critical for performance. 
+
+---------------------------------------
+------------ Libraries used -----------
+---------------------------------------
+1. PyTorch (CUDA Extension): Used for defining and launching custom CUDA kernels from Python.
+
+2. CUDA Toolkit:Provides the low-level programming interface for GPU execution,
+    including thread/block management and memory handling.
+
+3. NumPy: Used for CPU-side matrix initialization and validation .
+
+4. MKL Intel’s Math Kernel Library Used for CPU-side matrix performance comparison .
+
+---------------------------------------
+-------Data Structures Employed -------
+---------------------------------------
+1. Dense 2D Arrays (Row-Major Layout):  
+   Matrices are stored in standard contiguous memory. The layout is row-major (C-style), aligning with PyTorch and MKL conventions.
+
+2. Float32 Tensors:  
+   Matrix elements are represented using float32 for optimal balance between performance and precision in register-level computations.
+
+3. Shared Memory Tiles:  
+   Subtiles of A and B are cooperatively loaded into shared memory per thread block to reduce global memory access and allow
+   fast intra-block reuse.
+
+4. Register-Level Output Tiles:  
+   Each thread computes a full output tile (e.g., 4×4 or 8×8) and stores intermediate results in scalar registers.
+   This reduces shared memory pressure and avoids redundant loads.
+
+5. Thread Mapping with Work-Per-Thread (WPT):  
+   Each thread handles multiple output elements using loop unrolling or static indexing,
+   improving arithmetic throughput and utilization.
+
+6. Submatrix Partitioning:  
+   The full matrix multiplication is divided into tiles along M, N, and K dimensions. Each tile maps to a thread block
+   and threads process fixed tiles in register space.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+------------------------------- Initial Analysis: ----------------------------
+------------------------------------------------------------------------------
+
+Register tiling solves this inefficiency by assigning each thread to compute a small tile of the output matrix (4×4 elements), instead of just one.
+This allows each thread to reuse data already loaded into registers, significantly reducing the need to reload rows of A or columns of B from shared memory.
+
+Register tiling complements shared memory tiling by enabling high reuse within each thread’s private space,
+while shared memory enables reuse across threads in the block.
+This synergy is essential for sustaining high throughput and scaling large matrix sizes without saturating global memory bandwidth.
+
+---------------------------------------
+------- Performance Analysis: ---------
+---------------------------------------
+
+The results demonstrate a consistent and significant improvement in execution time when using Register Tiling and Shared Memory compared to MKL.  
+However, Register Tiling outperforms Shared Memory across all tested matrix sizes.  
+The flame graphs confirm that using Register Tiling — even when streamed — leads to a highly parallel and efficient execution.  
+Execution time dropped dramatically, reaching speedups of over 100× versus MKL at large sizes.
+
+----------------------------------------
+--------------Flame Graphs:------------- 
+----------------------------------------
+
+- Observation 1: Kernel Structure  
+   In the streamed Register Tiling version, multiple concurrent kernel launches (`matmul_kernel_REGTILE_streamed`) are executed across separate CUDA streams.  
+   Each kernel processes a distinct tile of the result matrix, leveraging register-level accumulation and shared memory reuse.
+
+- Observation 2: Synchronization Behavior  
+   Minimal `cudaStreamSynchronize` overhead is present, and the kernel launches are pipelined efficiently.  
+   The workload is clearly decomposed into independent tasks, enabling full SM occupancy without stalling.
+
+- Observation 3: Efficiency  
+   Unlike the single-kernel register-tiled implementation, the streamed version balances workload dynamically across the GPU.  
+   This enables scalable execution on larger matrices and avoids long monolithic kernels that may underutilize SMs when tile sizes are small.
+
+Conclusion:  
+   Register Tiling with streaming achieves efficient data reuse, maximizes per-thread throughput, and maintains high SM utilization.  
+   The flame graph confirms the effectiveness of this combination, showing tightly packed kernel launches with little to no host-side idle time.
+
+---------------------------------------
+-------------Profiling Data:-----------
+---------------------------------------
+
+- Registers per thread: 80  
+- Shared memory used: 16384 B  
+- Blocks per SM: ~3.76  
+- Warps per SM: ~30.12  
+- Estimated achieved occupancy: 75%
+
+- Grid size: (16, 16, 1)  
+- Block size: (16, 16, 1)
+
+Analysis:
+
+- The use of 16×16 thread blocks (256 threads) balances computation and register pressure, but register usage is high (80 per thread), reducing the number of blocks that can reside per SM.
+- 16 KB shared memory per block enables a full 64×64 tile to be loaded and reused efficiently, but also reduces the number of blocks per SM compared to the earlier 8 KB version.
+- Occupancy is slightly reduced (75%) due to register pressure, but this is a deliberate trade-off for higher data reuse and fewer memory accesses.
+- The kernel grid of 16×16 covers the output matrix assuming each block computes a 64×64 tile (with register tiling).
+- Warps per SM (~30) are consistent with a lower-residency configuration, optimized for performance rather than maximal concurrency.
+- Compared to the previous block-only version, this configuration reflects a more aggressive optimization strategy that favors per-thread throughput over SM saturation.
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+---------------------------------- Optimizations: ----------------------------
+------------------------------------------------------------------------------
+
+
+This kernel combines multiple GPU-level optimization strategies to maximize performance, particularly for large-scale matrix multiplication:
+
+1. Register Tiling  
+   Each thread computes a full output tile (e.g., 4×4 or 8×8) and stores partial results in registers.  
+   This minimizes shared/global memory accesses and maximizes reuse of loaded data, leading to higher arithmetic throughput.
+
+2. Shared Memory Tiling  
+   Tiles of the input matrices are loaded cooperatively into shared memory by threads within each block.  
+   This reduces redundant global memory access and improves data locality across threads in a block.
+
+3. Loop Unrolling  
+   The inner loop over the shared K-dimension is fully unrolled or partially unrolled to reduce control overhead and improve instruction-level parallelism.
+
+4. Block-Level Tiling (64×64)  
+   Each thread block is assigned a large tile (e.g., 64×64) of the output matrix.  
+   This improves spatial locality and allows the use of fewer but larger thread blocks, simplifying launch and indexing logic.
+
+5. Thread-Level Work Partitioning (WPT)  
+   Each thread computes multiple output elements (e.g., a 4×4 sub-tile) rather than just one, which improves register utilization 
+   and reduces overall thread count for the same output size.
+
+6. Occupancy-Aware Configuration  
+   Despite slightly reduced occupancy (75%) due to high register usage, the kernel achieves better performance by maximizing instruction throughput per thread.  
+   The balance between occupancy and register usage is tuned for this kernel size and hardware.
+
+7. Streamed Execution (Optional)  
+   In the streamed version, multiple CUDA streams are used to launch kernel tiles concurrently.  
+   This allows overlap of kernel execution and improves SM utilization when launching many sub-matrices.
+
+8. Memory Coalescing  
+   Global memory accesses (to load A and B tiles) are coalesced, minimizing memory transaction overhead and improving memory bandwidth utilization.
+
+9. Reduced Synchronization  
+   By keeping intermediate results in registers and using only one synchronization point per tile load, the kernel minimizes warp-level
+   and block-level synchronization overhead.
+
+10. Instruction-Level Parallelism  
+    By fusing loads, multiplies, and accumulations tightly in the innermost loop, the kernel maximizes ILP and keeps the CUDA cores fully utilized.
+
+Overall, this kernel achieves superior performance through a balance of compute reuse, memory locality, and hardware-aware configuration tuning.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+--------------------------- Performance Comparison ---------------------------
+------------------------------------------------------------------------------
+
+Comparison: Shared Memory vs. Blocked & Streaming Implementation
+---------------------------------------------
+
+Execution Time Comparison (ms)
+------------------------------
+
+| Size |  MKL   | Shared Mem  | Reg. Tiling  | Shared Mem Speedup   | Reg. Tiling Speedup |
+|------|--------|-------------|--------------|---------------------|----------------------|
+| 128  | 0.17   | 0.10        | 0.12         | 1.71×               | 1.40×                |
+| 256  | 0.72   | 0.11        | 0.12         | 6.23×               | 5.88×                |
+| 512  | 4.15   | 0.27        | 0.15         | 15.32×              | 27.37×               |
+| 1024 | 31.65  | 1.53        | 0.53         | 20.71×              | 59.53×               |
+| 1408 | 75.35  | 3.81        | 1.12         | 19.79×              | 67.26×               |
+| 1792 | 153.95 | 6.69        | 1.80         | 23.02×              | 85.73×               |
+| 2048 | 246.70 | 9.40        | 2.34         | 26.24×              | 105.49×              |
+
+Analysis
+--------
+At small matrix sizes , the difference between the two is minimal, with Register Tiling slightly slower due to higher instruction overhead and underutilization.
+As matrix size increases, Register Tiling achieves increasingly higher speedups over MKL reaching  ~105.20× at size 2048×2048 —
+thanks to reduced memory traffic and maximal data reuse within registers.
+
+
+----------------------------------------------------------------------
+Disclaimer Regarding Shared Memory Configuration with Register Tiling
+----------------------------------------------------------------------
+adding register on the tiling Shared memory implementation,  allows us to restructure the configuration so that fewer threads cover a larger tile region.
+Specifically, we reduce the number of threads per block to 16×16, enabling us to increase the size of the shared memory tiles accordingly.
+The resulting speedup is therefore a combined effect of shared memory usage,register tiling, and a more optimized block/thread configuration that 
+integrates improvements from all previous implementations.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------- Hardware Acceleration Proposal --------------------
+------------------------------------------------------------------------
+
+-Double Buffering in Shared Memory (Validated but Not Fully Integrated Yet)
+ Overlap computation and memory loading to hide latency and improve pipeline efficiency.
+
+-Vectorized Data Loads & Stores (Validated but Not Fully Integrated Yet)
+Use vectorized memory instructions to reduce global memory transactions.
+
+-Quantization for Faster Integer GEMM (Partly Validated on Small Matrices )
+Convert floating-point computations to lower-precision formats like int8 or float16
+
+-Full Utilization of All 68 SMs (Validated but Not Fully Integrated Yet)
+Scale the kernel launch configuration to engage the entire GPU for maximum throughput.
+
+-Improved Streaming Mechanism (Partly Validated on Large Matrices )
+Optimize CUDA streams and data partitioning to increase concurrency and reduce idle time. 
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-------------------------------- Summary -------------------------------
+------------------------------------------------------------------------
+Register tiling significantly improves GPU matrix multiplication by assigning each thread to compute a small tile of the output,
+enabling efficient data reuse in registers and reducing global memory traffic.
+Combined with shared memory tiling, this approach maximizes throughput while maintaining high SM utilization.
+The implementation uses loop unrolling, memory coalescing, and occupancy-aware tuning to balance performance and resource constraints.
+Profiling shows a 75% occupancy with notable gains—achieving over 105× speedup compared to MKL on large matrices.
+Flame graphs confirm efficient streaming and parallelism.
+Additional validated optimizations (e.g., double buffering, vectorized loads) offer further performance potential.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
